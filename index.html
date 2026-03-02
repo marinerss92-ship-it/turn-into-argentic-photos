@@ -151,18 +151,18 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 
 <script>
 const PRESETS = {
-  leicaM6:    { name:'Leica M6',        sub:'High contrast B&W',       bw:true,  grain:55, vignette:65, contrast:75, sepia:0,  fade:5,  brightness:50, saturation:50, temperature:50 },
-  leicaM3:    { name:'Leica M3',        sub:'Soft tones B&W',          bw:true,  grain:30, vignette:35, contrast:50, sepia:0,  fade:10, brightness:52, saturation:50, temperature:50 },
-  triX400:    { name:'Tri-X 400',       sub:'Punchy, heavy grain',     bw:true,  grain:80, vignette:25, contrast:70, sepia:0,  fade:15, brightness:48, saturation:50, temperature:50 },
-  hp5:        { name:'Ilford HP5',      sub:'Classic tonal range',     bw:true,  grain:50, vignette:30, contrast:55, sepia:0,  fade:8,  brightness:50, saturation:50, temperature:50 },
-  delta3200:  { name:'Delta 3200',      sub:'High ISO, extreme grain', bw:true,  grain:90, vignette:40, contrast:65, sepia:0,  fade:20, brightness:46, saturation:50, temperature:50 },
-  tmax100:    { name:'T-Max 100',       sub:'Ultra fine grain B&W',    bw:true,  grain:12, vignette:20, contrast:60, sepia:0,  fade:3,  brightness:52, saturation:50, temperature:50 },
-  portra400:  { name:'Portra 400',      sub:'Warm skin tones',         bw:false, grain:20, vignette:25, contrast:45, sepia:15, fade:5,  brightness:52, saturation:55, temperature:58 },
-  superia:    { name:'Fuji Superia',    sub:'Cool tones, visible grain', bw:false, grain:45, vignette:35, contrast:50, sepia:0, fade:10, brightness:50, saturation:58, temperature:42 },
-  ektar100:   { name:'Ektar 100',       sub:'Vivid colours, fine grain', bw:false, grain:10, vignette:15, contrast:60, sepia:0, fade:0,  brightness:52, saturation:72, temperature:52 },
-  gold200:    { name:'Kodak Gold',      sub:'Warm nostalgic tones',    bw:false, grain:35, vignette:30, contrast:48, sepia:10, fade:8,  brightness:54, saturation:60, temperature:62 },
-  cinestill:  { name:'CineStill 800T',  sub:'Cinematic tungsten',      bw:false, grain:40, vignette:45, contrast:55, sepia:0,  fade:12, brightness:48, saturation:55, temperature:35 },
-  lomo:       { name:'Lomography',      sub:'Saturated, heavy vignette', bw:false, grain:50, vignette:80, contrast:70, sepia:0, fade:5,  brightness:50, saturation:80, temperature:55 },
+  leicaM6:    { name:'Leica M6',        sub:'High contrast B&W',       bw:true,  grain:55, contrast:75, sepia:0,  fade:5,  brightness:50, saturation:50, temperature:50 },
+  leicaM3:    { name:'Leica M3',        sub:'Soft tones B&W',          bw:true,  grain:30, contrast:50, sepia:0,  fade:10, brightness:52, saturation:50, temperature:50 },
+  triX400:    { name:'Tri-X 400',       sub:'Punchy, heavy grain',     bw:true,  grain:80, contrast:70, sepia:0,  fade:15, brightness:48, saturation:50, temperature:50 },
+  hp5:        { name:'Ilford HP5',      sub:'Classic tonal range',     bw:true,  grain:50, contrast:55, sepia:0,  fade:8,  brightness:50, saturation:50, temperature:50 },
+  delta3200:  { name:'Delta 3200',      sub:'High ISO, extreme grain', bw:true,  grain:90, contrast:65, sepia:0,  fade:20, brightness:46, saturation:50, temperature:50 },
+  tmax100:    { name:'T-Max 100',       sub:'Ultra fine grain B&W',    bw:true,  grain:12, contrast:60, sepia:0,  fade:3,  brightness:52, saturation:50, temperature:50 },
+  portra400:  { name:'Portra 400',      sub:'Warm skin tones',         bw:false, grain:20, contrast:45, sepia:15, fade:5,  brightness:52, saturation:55, temperature:58 },
+  superia:    { name:'Fuji Superia',    sub:'Cool tones, visible grain', bw:false, grain:45, contrast:50, sepia:0, fade:10, brightness:50, saturation:58, temperature:42 },
+  ektar100:   { name:'Ektar 100',       sub:'Vivid colours, fine grain', bw:false, grain:10, contrast:60, sepia:0, fade:0,  brightness:52, saturation:72, temperature:52 },
+  gold200:    { name:'Kodak Gold',      sub:'Warm nostalgic tones',    bw:false, grain:35, contrast:48, sepia:10, fade:8,  brightness:54, saturation:60, temperature:62 },
+  cinestill:  { name:'CineStill 800T',  sub:'Cinematic tungsten',      bw:false, grain:40, contrast:55, sepia:0,  fade:12, brightness:48, saturation:55, temperature:35 },
+  lomo:       { name:'Lomography',      sub:'High saturation, punchy',   bw:false, grain:50, contrast:70, sepia:0, fade:5,  brightness:50, saturation:80, temperature:55 },
 };
 
 let cardId = 0;
@@ -187,7 +187,7 @@ function handleFiles(files) {
 function addPhoto(file) {
   const id = cardId++;
   const url = URL.createObjectURL(file);
-  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, vignette:65, contrast:75, sepia:0, fade:5, brightness:50, saturation:50, temperature:50, comparing:false, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
+  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, contrast:75, sepia:0, fade:5, brightness:50, saturation:50, temperature:50, comparing:false, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
   cards[id] = state;
 
   const card = document.createElement('div');
@@ -247,7 +247,6 @@ function buildCardHTML(id, s) {
       ${slider(id,'saturation','Saturation',s.saturation)}
       ${slider(id,'temperature','Temp',s.temperature)}
       ${slider(id,'grain','Grain',s.grain)}
-      ${slider(id,'vignette','Vignette',s.vignette)}
       ${slider(id,'sepia','Sepia',s.sepia)}
       ${slider(id,'fade','Fade',s.fade)}
 
@@ -288,7 +287,7 @@ function slider(id, param, label, val) {
 function setPreset(id, key) {
   const p = PRESETS[key], s = cards[id];
   s.preset = key; s.bw = p.bw;
-  for (const k of ['grain','vignette','contrast','sepia','fade','brightness','saturation','temperature'])
+  for (const k of ['grain','contrast','sepia','fade','brightness','saturation','temperature'])
     s[k] = p[k];
   refreshControls(id);
   render(id);
@@ -317,7 +316,7 @@ function refreshControls(id) {
   mBtns[0].classList.toggle('active', s.bw);
   mBtns[1].classList.toggle('active', !s.bw);
   // Sliders
-  for (const p of ['grain','vignette','contrast','sepia','fade','brightness','saturation','temperature']) {
+  for (const p of ['grain','contrast','sepia','fade','brightness','saturation','temperature']) {
     const range = card.querySelector(`input[oninput*="'${p}'"]`);
     if (range) { range.value = s[p]; document.getElementById(`${p}-val-${id}`).textContent = s[p]; }
   }
@@ -443,18 +442,6 @@ function applyEffect(id) {
   }
 
   ctx.putImageData(imageData, 0, 0);
-
-  // Vignette (drawn on top)
-  if (s.vignette > 0) {
-    const cx = canvas.width / 2, cy = canvas.height / 2;
-    const maxR = Math.sqrt(cx * cx + cy * cy);
-    const innerR = maxR * (1 - s.vignette / 100 * 0.75);
-    const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, maxR);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, `rgba(0,0,0,${0.25 + s.vignette / 100 * 0.55})`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
 }
 
 function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
