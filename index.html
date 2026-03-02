@@ -7,109 +7,195 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#111;--surface:#1a1a1a;--surface2:#232323;--border:#333;
-  --text:#e8e8e8;--text2:#999;--accent:#c8a46e;--accent2:#a07d4f;
-  --radius:10px;
+  --bg:#0e0e0e;--surface:#171717;--surface2:#1f1f1f;--surface3:#282828;
+  --border:#2a2a2a;--border2:#383838;
+  --text:#ececec;--text2:#888;--text3:#555;
+  --accent:#c8a46e;--accent2:#a07d4f;--accent-glow:rgba(200,164,110,.12);
+  --radius:12px;--radius-sm:8px;
+  --transition:.18s ease;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-a{color:var(--accent)}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 
 /* Header */
-header{text-align:center;padding:2rem 1rem 1rem;border-bottom:1px solid var(--border)}
-header h1{font-size:1.8rem;font-weight:300;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
-header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05em}
+header{text-align:center;padding:2.5rem 1rem 1.5rem;border-bottom:1px solid var(--border)}
+header h1{font-size:2rem;font-weight:200;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+header p{color:var(--text2);font-size:.82rem;margin-top:.4rem;letter-spacing:.06em;font-weight:300}
 
 /* Upload zone */
 #drop-zone{
-  max-width:700px;margin:2rem auto;border:2px dashed var(--border);border-radius:var(--radius);
-  padding:3rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;
+  max-width:680px;margin:2.5rem auto;border:2px dashed var(--border);border-radius:var(--radius);
+  padding:3rem 2rem;text-align:center;cursor:pointer;transition:border-color var(--transition),background var(--transition),transform var(--transition);
 }
-#drop-zone:hover,#drop-zone.drag-over{border-color:var(--accent);background:rgba(200,164,110,.06)}
-#drop-zone p{color:var(--text2);font-size:.95rem}
-#drop-zone .big{font-size:2.5rem;margin-bottom:.5rem;display:block}
+#drop-zone:hover{border-color:var(--accent);background:var(--accent-glow);transform:scale(1.005)}
+#drop-zone.drag-over{border-color:var(--accent);background:var(--accent-glow);transform:scale(1.01)}
+#drop-zone .icon{font-size:2.2rem;margin-bottom:.6rem;display:block;opacity:.7}
+#drop-zone p{color:var(--text2);font-size:.9rem}
+#drop-zone p strong{color:var(--accent);font-weight:500}
+#drop-zone .sub{font-size:.72rem;margin-top:.4rem;color:var(--text3)}
 #file-input{display:none}
+#drop-zone.success{border-color:#5a9;background:rgba(85,170,153,.06)}
 
 /* Gallery */
-#gallery{max-width:1400px;margin:0 auto;padding:1rem;display:flex;flex-direction:column;gap:2rem}
+#gallery{max-width:1440px;margin:0 auto;padding:1rem 1.5rem 3rem;display:flex;flex-direction:column;gap:2rem}
+
+/* Download All */
+#download-all-row{max-width:1440px;margin:0 auto;padding:0 1.5rem;display:none}
+#download-all-row.visible{display:flex;justify-content:flex-end}
+#download-all-btn{
+  padding:.5rem 1.2rem;border:1px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent);
+  color:#111;font-size:.82rem;font-weight:600;cursor:pointer;transition:all var(--transition);
+}
+#download-all-btn:hover{background:var(--accent2);border-color:var(--accent2)}
 
 /* Card */
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
-  display:grid;grid-template-columns:1fr 340px;gap:0;
+  display:grid;grid-template-columns:1fr 360px;
+  opacity:0;transform:translateY(16px);animation:cardIn .4s ease forwards;
 }
-@media(max-width:900px){.photo-card{grid-template-columns:1fr}}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){.photo-card{grid-template-columns:1fr}}
+
+/* Filename bar */
+.filename-bar{
+  grid-column:1/-1;padding:.5rem 1rem;background:var(--surface2);border-bottom:1px solid var(--border);
+  font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:.5rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.filename-bar .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
 
 /* Image area */
-.img-area{position:relative;background:#000;display:flex;align-items:center;justify-content:center;min-height:350px;overflow:hidden}
-.img-area canvas,.img-area img{max-width:100%;max-height:70vh;object-fit:contain;display:block}
-.img-area .original-overlay{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;clip-path:inset(0 50% 0 0);pointer-events:none;z-index:2}
-.img-area .compare-line{position:absolute;top:0;left:50%;width:2px;height:100%;background:var(--accent);z-index:3;pointer-events:none;display:none}
-.img-area .compare-label{position:absolute;top:8px;z-index:4;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.65)}
-.img-area .label-before{left:8px}
-.img-area .label-after{right:8px}
+.img-area{position:relative;background:#000;display:flex;align-items:center;justify-content:center;min-height:360px;overflow:hidden}
+.img-area canvas{max-width:100%;max-height:72vh;object-fit:contain;display:block}
+.img-area .original-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;
+  clip-path:inset(0 50% 0 0);pointer-events:none;z-index:2;
+}
+.img-area .compare-handle{
+  position:absolute;top:0;left:50%;width:32px;height:100%;z-index:4;cursor:ew-resize;
+  transform:translateX(-50%);display:none;
+}
+.img-area .compare-line{
+  position:absolute;top:0;left:50%;width:2px;height:100%;background:var(--accent);
+  z-index:3;pointer-events:none;display:none;box-shadow:0 0 6px rgba(200,164,110,.4);
+}
+.img-area .compare-dot{
+  position:absolute;top:50%;left:50%;width:28px;height:28px;border-radius:50%;
+  background:var(--accent);border:2px solid #fff;z-index:5;pointer-events:none;
+  transform:translate(-50%,-50%);display:none;box-shadow:0 0 8px rgba(0,0,0,.5);
+}
+.img-area .compare-dot::before,.img-area .compare-dot::after{
+  content:'';position:absolute;top:50%;width:6px;height:2px;background:#fff;border-radius:1px;
+}
+.img-area .compare-dot::before{left:3px;transform:translateY(-50%)}
+.img-area .compare-dot::after{right:3px;transform:translateY(-50%)}
+.img-area .compare-label{
+  position:absolute;top:10px;z-index:6;font-size:.65rem;text-transform:uppercase;
+  letter-spacing:.1em;padding:3px 10px;border-radius:4px;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(4px);font-weight:500;display:none;
+}
+.img-area .label-before{left:10px}
+.img-area .label-after{right:10px}
 
 /* Controls panel */
-.controls{padding:1.2rem;display:flex;flex-direction:column;gap:.9rem;overflow-y:auto;max-height:70vh}
-.controls h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:.2rem}
+.controls{padding:1rem 1.2rem;display:flex;flex-direction:column;gap:.7rem;overflow-y:auto;max-height:75vh;border-left:1px solid var(--border)}
+@media(max-width:960px){.controls{border-left:none;border-top:1px solid var(--border)}}
+.controls h3{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);
+  margin-bottom:.15rem;font-weight:600;
+}
+
+/* Preset tabs */
+.preset-tabs{display:flex;gap:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+.preset-tab{
+  flex:1;padding:.35rem;text-align:center;font-size:.72rem;font-weight:500;cursor:pointer;
+  background:var(--surface2);color:var(--text2);border:none;transition:all var(--transition);
+}
+.preset-tab:first-child{border-right:1px solid var(--border)}
+.preset-tab.active{background:var(--accent-glow);color:var(--accent)}
+.preset-tab:hover:not(.active){background:var(--surface3)}
 
 /* Preset grid */
-.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;max-height:220px;overflow-y:auto;padding-right:4px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;max-height:180px;overflow-y:auto;padding-right:2px}
 .preset-btn{
-  background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.45rem .5rem;
-  color:var(--text);font-size:.78rem;cursor:pointer;transition:all .15s;text-align:left;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;
+  color:var(--text);font-size:.74rem;cursor:pointer;transition:all var(--transition);text-align:left;
 }
-.preset-btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
-.preset-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
-.preset-btn .preset-sub{display:block;font-size:.65rem;color:var(--text2);margin-top:1px}
+.preset-btn:hover{border-color:var(--border2);background:var(--surface3)}
+.preset-btn.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+.preset-btn .preset-sub{display:block;font-size:.6rem;color:var(--text3);margin-top:1px}
+.preset-btn.active .preset-sub{color:var(--accent2)}
 
 /* Mode toggle */
-.mode-toggle{display:flex;gap:.4rem}
+.mode-toggle{display:flex;gap:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
 .mode-btn{
-  flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;background:var(--surface2);
-  color:var(--text);font-size:.78rem;cursor:pointer;text-align:center;transition:all .15s;
+  flex:1;padding:.35rem;border:none;background:var(--surface2);
+  color:var(--text2);font-size:.74rem;font-weight:500;cursor:pointer;text-align:center;transition:all var(--transition);
 }
-.mode-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
+.mode-btn:first-child{border-right:1px solid var(--border)}
+.mode-btn.active{background:var(--accent-glow);color:var(--accent)}
+.mode-btn:hover:not(.active){background:var(--surface3)}
 
 /* Sliders */
-.slider-row{display:flex;align-items:center;gap:.5rem}
-.slider-row label{font-size:.78rem;color:var(--text2);min-width:62px}
-.slider-row input[type=range]{flex:1;accent-color:var(--accent);height:4px}
-.slider-row .val{font-size:.72rem;color:var(--text2);min-width:28px;text-align:right}
+.slider-row{display:flex;align-items:center;gap:.4rem;padding:.1rem 0}
+.slider-row label{font-size:.72rem;color:var(--text2);min-width:68px;font-weight:400}
+.slider-row input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
+  background:var(--border);outline:none;transition:background var(--transition);
+}
+.slider-row input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--surface);cursor:pointer;box-shadow:0 0 4px rgba(0,0,0,.4);
+  transition:transform .12s ease;
+}
+.slider-row input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.slider-row input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--surface);cursor:pointer;
+}
+.slider-row .val{font-size:.68rem;color:var(--text3);min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* Divider */
+.ctrl-divider{height:1px;background:var(--border);margin:.2rem 0}
 
 /* Buttons */
-.action-row{display:flex;gap:.5rem;margin-top:auto;padding-top:.5rem}
+.action-row{display:flex;gap:.4rem;margin-top:auto;padding-top:.4rem}
 .btn{
-  flex:1;padding:.55rem .8rem;border:1px solid var(--border);border-radius:6px;background:var(--surface2);
-  color:var(--text);font-size:.8rem;cursor:pointer;transition:all .15s;text-align:center;
+  flex:1;padding:.5rem .6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);
+  color:var(--text);font-size:.74rem;cursor:pointer;transition:all var(--transition);text-align:center;font-weight:400;
 }
-.btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
+.btn:hover{border-color:var(--border2);background:var(--surface3)}
 .btn-primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
-.btn-primary:hover{background:var(--accent2)}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
 
 /* Remove button */
 .remove-btn{
-  position:absolute;top:8px;right:8px;z-index:5;background:rgba(0,0,0,.6);border:none;
-  color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;
-  display:flex;align-items:center;justify-content:center;transition:background .15s;
+  position:absolute;top:10px;right:10px;z-index:7;background:rgba(0,0,0,.55);border:none;
+  color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;transition:all var(--transition);
+  backdrop-filter:blur(4px);opacity:.7;
 }
-.remove-btn:hover{background:rgba(200,50,50,.8)}
+.remove-btn:hover{background:rgba(200,50,50,.85);opacity:1}
 
 /* Crop overlay */
-.crop-overlay{
-  position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;cursor:crosshair;display:none;
-}
+.crop-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;cursor:crosshair;display:none}
 .crop-overlay.active{display:block}
-.crop-dim{position:absolute;background:rgba(0,0,0,.55)}
+.crop-dim{position:absolute;background:rgba(0,0,0,.55);transition:none}
 .crop-dim-top{top:0;left:0;width:100%}
 .crop-dim-bottom{bottom:0;left:0;width:100%}
 .crop-dim-left{left:0}
 .crop-dim-right{right:0}
-.crop-selection{
-  position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 1px rgba(0,0,0,.3);
-}
+.crop-selection{position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
 .crop-handle{
-  position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;
-  border-radius:2px;z-index:2;
+  position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;border-radius:2px;z-index:2;
 }
 .crop-handle-tl{top:-6px;left:-6px;cursor:nw-resize}
 .crop-handle-tr{top:-6px;right:-6px;cursor:ne-resize}
@@ -125,11 +211,11 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 .crop-section.active{display:block}
 .ratio-grid{display:flex;flex-wrap:wrap;gap:.3rem}
 .ratio-btn{
-  padding:.3rem .55rem;border:1px solid var(--border);border-radius:5px;background:var(--surface2);
-  color:var(--text);font-size:.72rem;cursor:pointer;transition:all .15s;
+  padding:.3rem .55rem;border:1px solid var(--border);border-radius:6px;background:var(--surface2);
+  color:var(--text2);font-size:.68rem;cursor:pointer;transition:all var(--transition);
 }
-.ratio-btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
-.ratio-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
+.ratio-btn:hover{border-color:var(--border2);background:var(--surface3)}
+.ratio-btn.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
 .crop-actions{display:flex;gap:.4rem;margin-top:.5rem}
 </style>
 </head>
@@ -141,70 +227,82 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 </header>
 
 <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-  <span class="big">📷</span>
+  <span class="icon">&#9678;</span>
   <p>Drag & drop photos here or <strong>click to browse</strong></p>
-  <p style="font-size:.75rem;margin-top:.4rem;color:#666">Accepts JPEG, PNG — multiple files supported</p>
+  <p class="sub">Accepts JPEG, PNG — multiple files supported</p>
   <input type="file" id="file-input" accept="image/*" multiple>
 </div>
 
+<div id="download-all-row"><button id="download-all-btn" onclick="downloadAll()">Download All</button></div>
 <div id="gallery"></div>
 
 <script>
-const PRESETS = {
-  // B&W Film Stocks
-  leicaM6:    { name:'Leica M6',        sub:'High contrast B&W',       bw:true,  grain:55, contrast:75, sepia:0,  fade:5,  brightness:50, saturation:50, temperature:50 },
-  leicaM3:    { name:'Leica M3',        sub:'Soft tones B&W',          bw:true,  grain:30, contrast:50, sepia:0,  fade:10, brightness:52, saturation:50, temperature:50 },
-  triX400:    { name:'Tri-X 400',       sub:'Punchy, heavy grain',     bw:true,  grain:80, contrast:70, sepia:0,  fade:15, brightness:48, saturation:50, temperature:50 },
-  hp5:        { name:'Ilford HP5',      sub:'Classic tonal range',     bw:true,  grain:50, contrast:55, sepia:0,  fade:8,  brightness:50, saturation:50, temperature:50 },
-  delta3200:  { name:'Delta 3200',      sub:'High ISO, extreme grain', bw:true,  grain:90, contrast:65, sepia:0,  fade:20, brightness:46, saturation:50, temperature:50 },
-  tmax100:    { name:'T-Max 100',       sub:'Ultra fine grain B&W',    bw:true,  grain:12, contrast:60, sepia:0,  fade:3,  brightness:52, saturation:50, temperature:50 },
-  panF50:     { name:'Ilford Pan F',    sub:'Extremely fine, sharp',   bw:true,  grain:8,  contrast:58, sepia:0,  fade:2,  brightness:53, saturation:50, temperature:50 },
-  fp4:        { name:'Ilford FP4',      sub:'Medium speed, smooth',    bw:true,  grain:25, contrast:52, sepia:0,  fade:6,  brightness:51, saturation:50, temperature:50 },
-  apx100:     { name:'Agfa APX 100',    sub:'Crisp, fine detail',      bw:true,  grain:18, contrast:62, sepia:0,  fade:4,  brightness:50, saturation:50, temperature:50 },
-  rolleiR80:  { name:'Rollei Retro 80', sub:'Infrared-like tones',     bw:true,  grain:35, contrast:72, sepia:0,  fade:10, brightness:47, saturation:50, temperature:50 },
-  fomapan:    { name:'Fomapan 400',     sub:'East European classic',   bw:true,  grain:65, contrast:58, sepia:0,  fade:12, brightness:49, saturation:50, temperature:50 },
-  vintage:    { name:'Vintage Print',   sub:'Aged sepia photograph',   bw:true,  grain:45, contrast:48, sepia:60, fade:18, brightness:52, saturation:50, temperature:55 },
-  // Colour Film Stocks
-  portra400:  { name:'Portra 400',      sub:'Warm skin tones',         bw:false, grain:20, contrast:45, sepia:15, fade:5,  brightness:52, saturation:55, temperature:58 },
-  portra160:  { name:'Portra 160',      sub:'Pastel, fine grain',      bw:false, grain:10, contrast:42, sepia:8,  fade:3,  brightness:54, saturation:48, temperature:55 },
-  superia:    { name:'Fuji Superia',    sub:'Cool tones, visible grain', bw:false, grain:45, contrast:50, sepia:0, fade:10, brightness:50, saturation:58, temperature:42 },
-  ektar100:   { name:'Ektar 100',       sub:'Vivid colours, fine grain', bw:false, grain:10, contrast:60, sepia:0, fade:0,  brightness:52, saturation:72, temperature:52 },
-  gold200:    { name:'Kodak Gold',      sub:'Warm nostalgic tones',    bw:false, grain:35, contrast:48, sepia:10, fade:8,  brightness:54, saturation:60, temperature:62 },
-  ultramax:   { name:'Ultramax 400',    sub:'Everyday warm colours',   bw:false, grain:40, contrast:52, sepia:5,  fade:6,  brightness:52, saturation:62, temperature:58 },
-  cinestill:  { name:'CineStill 800T',  sub:'Cinematic tungsten',      bw:false, grain:40, contrast:55, sepia:0,  fade:12, brightness:48, saturation:55, temperature:35 },
-  cinestill50:{ name:'CineStill 50D',   sub:'Daylight cinema',         bw:false, grain:15, contrast:52, sepia:0,  fade:5,  brightness:52, saturation:60, temperature:52 },
-  pro400h:    { name:'Fuji Pro 400H',   sub:'Soft pastels, low contrast', bw:false, grain:18, contrast:38, sepia:0, fade:8, brightness:54, saturation:45, temperature:46 },
-  velvia50:   { name:'Velvia 50',       sub:'Ultra saturated slides',  bw:false, grain:8,  contrast:68, sepia:0,  fade:0,  brightness:50, saturation:85, temperature:50 },
-  provia100:  { name:'Provia 100F',     sub:'Natural, balanced slides', bw:false, grain:10, contrast:55, sepia:0, fade:2,  brightness:51, saturation:62, temperature:50 },
-  lomo:       { name:'Lomography',      sub:'High saturation, punchy', bw:false, grain:50, contrast:70, sepia:0,  fade:5,  brightness:50, saturation:80, temperature:55 },
-  xpro:       { name:'Cross Process',   sub:'Green/yellow shift',      bw:false, grain:35, contrast:62, sepia:0,  fade:8,  brightness:50, saturation:70, temperature:38 },
-  polaroid:   { name:'Polaroid',        sub:'Faded instant film',      bw:false, grain:25, contrast:42, sepia:12, fade:22, brightness:55, saturation:52, temperature:56 },
-  fuji400h:   { name:'Fuji 400H',       sub:'Airy, overexposed feel',  bw:false, grain:22, contrast:40, sepia:0,  fade:15, brightness:58, saturation:42, temperature:48 },
+const BW_PRESETS = {
+  leicaM6:   { name:'Leica M6',        sub:'High contrast',          bw:true,  grain:55, contrast:75, sepia:0,  fade:5,  brightness:50, saturation:50, temperature:50 },
+  leicaM3:   { name:'Leica M3',        sub:'Soft tones',             bw:true,  grain:30, contrast:50, sepia:0,  fade:10, brightness:52, saturation:50, temperature:50 },
+  triX400:   { name:'Tri-X 400',       sub:'Punchy, heavy grain',    bw:true,  grain:80, contrast:70, sepia:0,  fade:15, brightness:48, saturation:50, temperature:50 },
+  hp5:       { name:'Ilford HP5',      sub:'Classic tonal range',    bw:true,  grain:50, contrast:55, sepia:0,  fade:8,  brightness:50, saturation:50, temperature:50 },
+  delta3200: { name:'Delta 3200',      sub:'Extreme grain',          bw:true,  grain:90, contrast:65, sepia:0,  fade:20, brightness:46, saturation:50, temperature:50 },
+  tmax100:   { name:'T-Max 100',       sub:'Ultra fine grain',       bw:true,  grain:12, contrast:60, sepia:0,  fade:3,  brightness:52, saturation:50, temperature:50 },
+  panF50:    { name:'Ilford Pan F',    sub:'Extremely sharp',        bw:true,  grain:8,  contrast:58, sepia:0,  fade:2,  brightness:53, saturation:50, temperature:50 },
+  fp4:       { name:'Ilford FP4',      sub:'Smooth medium speed',    bw:true,  grain:25, contrast:52, sepia:0,  fade:6,  brightness:51, saturation:50, temperature:50 },
+  apx100:    { name:'Agfa APX 100',    sub:'Crisp, fine detail',     bw:true,  grain:18, contrast:62, sepia:0,  fade:4,  brightness:50, saturation:50, temperature:50 },
+  rolleiR80: { name:'Rollei Retro 80', sub:'Infrared-like',          bw:true,  grain:35, contrast:72, sepia:0,  fade:10, brightness:47, saturation:50, temperature:50 },
+  fomapan:   { name:'Fomapan 400',     sub:'East European classic',  bw:true,  grain:65, contrast:58, sepia:0,  fade:12, brightness:49, saturation:50, temperature:50 },
+  vintage:   { name:'Vintage Print',   sub:'Aged sepia tone',        bw:true,  grain:45, contrast:48, sepia:60, fade:18, brightness:52, saturation:50, temperature:55 },
 };
+
+const COLOR_PRESETS = {
+  portra400:  { name:'Portra 400',     sub:'Warm skin tones',        bw:false, grain:20, contrast:45, sepia:15, fade:5,  brightness:52, saturation:55, temperature:58 },
+  portra160:  { name:'Portra 160',     sub:'Pastel, fine grain',     bw:false, grain:10, contrast:42, sepia:8,  fade:3,  brightness:54, saturation:48, temperature:55 },
+  superia:    { name:'Fuji Superia',   sub:'Cool, visible grain',    bw:false, grain:45, contrast:50, sepia:0,  fade:10, brightness:50, saturation:58, temperature:42 },
+  ektar100:   { name:'Ektar 100',      sub:'Vivid, fine grain',      bw:false, grain:10, contrast:60, sepia:0,  fade:0,  brightness:52, saturation:72, temperature:52 },
+  gold200:    { name:'Kodak Gold',     sub:'Warm nostalgic',          bw:false, grain:35, contrast:48, sepia:10, fade:8,  brightness:54, saturation:60, temperature:62 },
+  ultramax:   { name:'Ultramax 400',   sub:'Everyday warm',           bw:false, grain:40, contrast:52, sepia:5,  fade:6,  brightness:52, saturation:62, temperature:58 },
+  cinestill:  { name:'CineStill 800T', sub:'Cinematic tungsten',     bw:false, grain:40, contrast:55, sepia:0,  fade:12, brightness:48, saturation:55, temperature:35 },
+  cinestill50:{ name:'CineStill 50D',  sub:'Daylight cinema',        bw:false, grain:15, contrast:52, sepia:0,  fade:5,  brightness:52, saturation:60, temperature:52 },
+  pro400h:    { name:'Fuji Pro 400H',  sub:'Soft pastels',            bw:false, grain:18, contrast:38, sepia:0,  fade:8,  brightness:54, saturation:45, temperature:46 },
+  velvia50:   { name:'Velvia 50',      sub:'Ultra saturated',         bw:false, grain:8,  contrast:68, sepia:0,  fade:0,  brightness:50, saturation:85, temperature:50 },
+  provia100:  { name:'Provia 100F',    sub:'Natural, balanced',       bw:false, grain:10, contrast:55, sepia:0,  fade:2,  brightness:51, saturation:62, temperature:50 },
+  lomo:       { name:'Lomography',     sub:'Saturated, punchy',       bw:false, grain:50, contrast:70, sepia:0,  fade:5,  brightness:50, saturation:80, temperature:55 },
+  xpro:       { name:'Cross Process',  sub:'Green/yellow shift',      bw:false, grain:35, contrast:62, sepia:0,  fade:8,  brightness:50, saturation:70, temperature:38 },
+  polaroid:   { name:'Polaroid',       sub:'Faded instant film',      bw:false, grain:25, contrast:42, sepia:12, fade:22, brightness:55, saturation:52, temperature:56 },
+  fuji400h:   { name:'Fuji 400H',      sub:'Airy, overexposed',       bw:false, grain:22, contrast:40, sepia:0,  fade:15, brightness:58, saturation:42, temperature:48 },
+};
+
+const ALL_PRESETS = { ...BW_PRESETS, ...COLOR_PRESETS };
 
 let cardId = 0;
 const cards = {};
 
-/* ---- Upload handling ---- */
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 const gallery = document.getElementById('gallery');
 
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+  dropZone.classList.add('success');
+  setTimeout(() => dropZone.classList.remove('success'), 600);
+});
 fileInput.addEventListener('change', e => handleFiles(e.target.files));
 
 function handleFiles(files) {
   [...files].forEach(f => { if (f.type.startsWith('image/')) addPhoto(f); });
   fileInput.value = '';
+  updateDownloadAll();
 }
 
-/* ---- Add a photo card ---- */
 function addPhoto(file) {
   const id = cardId++;
   const url = URL.createObjectURL(file);
-  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, contrast:75, sepia:0, fade:5, brightness:50, saturation:50, temperature:50, comparing:false, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
+  const def = ALL_PRESETS.leicaM6;
+  const state = { id, url, file, fileName: file.name, preset:'leicaM6', presetTab:'bw', bw:true,
+    grain:def.grain, contrast:def.contrast, sepia:def.sepia, fade:def.fade,
+    brightness:def.brightness, saturation:def.saturation, temperature:def.temperature,
+    comparing:false, compareX:50, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
   cards[id] = state;
 
   const card = document.createElement('div');
@@ -216,19 +314,27 @@ function addPhoto(file) {
   const img = new Image();
   img.onload = () => { state.img = img; render(id); };
   img.src = url;
+  setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'center' }), 50);
 }
 
 function buildCardHTML(id, s) {
-  let presetBtns = '';
-  for (const [key, p] of Object.entries(PRESETS)) {
-    presetBtns += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
+  const presetSets = { bw: BW_PRESETS, color: COLOR_PRESETS };
+  function buildGrid(presets, tab) {
+    let html = '';
+    for (const [key, p] of Object.entries(presets)) {
+      html += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
+    }
+    return `<div class="preset-grid" id="pgrid-${tab}-${id}" style="${s.presetTab===tab?'':'display:none'}">${html}</div>`;
   }
   return `
+    <div class="filename-bar"><span class="dot"></span>${s.fileName}</div>
     <div class="img-area" id="img-area-${id}">
       <button class="remove-btn" onclick="removeCard(${id})" title="Remove">×</button>
       <canvas id="canvas-${id}"></canvas>
       <img id="orig-${id}" class="original-overlay" style="display:none">
       <div class="compare-line" id="line-${id}"></div>
+      <div class="compare-dot" id="dot-${id}"></div>
+      <div class="compare-handle" id="chandle-${id}"></div>
       <span class="compare-label label-before" id="lb-${id}" style="display:none">Before</span>
       <span class="compare-label label-after" id="la-${id}" style="display:none">After</span>
       <div class="crop-overlay" id="crop-overlay-${id}">
@@ -249,15 +355,22 @@ function buildCardHTML(id, s) {
       </div>
     </div>
     <div class="controls">
-      <h3>Preset</h3>
-      <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
+      <h3>Film Stock</h3>
+      <div class="preset-tabs">
+        <button class="preset-tab${s.presetTab==='bw'?' active':''}" onclick="switchTab(${id},'bw')">B&W</button>
+        <button class="preset-tab${s.presetTab==='color'?' active':''}" onclick="switchTab(${id},'color')">Colour</button>
+      </div>
+      ${buildGrid(BW_PRESETS, 'bw')}
+      ${buildGrid(COLOR_PRESETS, 'color')}
 
-      <h3>Mode</h3>
+      <div class="ctrl-divider"></div>
+      <h3>Mode Override</h3>
       <div class="mode-toggle">
         <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
         <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
       </div>
 
+      <div class="ctrl-divider"></div>
       <h3>Adjustments</h3>
       ${slider(id,'brightness','Brightness',s.brightness)}
       ${slider(id,'contrast','Contrast',s.contrast)}
@@ -268,6 +381,7 @@ function buildCardHTML(id, s) {
       ${slider(id,'fade','Fade',s.fade)}
 
       <div class="crop-section" id="crop-section-${id}">
+        <div class="ctrl-divider"></div>
         <h3>Crop Ratio</h3>
         <div class="ratio-grid">
           <button class="ratio-btn active" onclick="setCropRatio(${id},0)">Free</button>
@@ -283,11 +397,12 @@ function buildCardHTML(id, s) {
         </div>
       </div>
 
+      <div class="ctrl-divider"></div>
       <div class="action-row">
-        <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">✂ Crop</button>
-        <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">↩ Reset</button>
-        <button class="btn" onclick="toggleCompare(${id})">Before / After</button>
-        <button class="btn btn-primary" onclick="download(${id})">↓ Download</button>
+        <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">Crop</button>
+        <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">Reset</button>
+        <button class="btn" onclick="toggleCompare(${id})" id="compare-btn-${id}">Compare</button>
+        <button class="btn btn-primary" onclick="download(${id})">Download</button>
       </div>
     </div>`;
 }
@@ -300,12 +415,20 @@ function slider(id, param, label, val) {
   </div>`;
 }
 
+/* ---- Preset tabs ---- */
+function switchTab(id, tab) {
+  cards[id].presetTab = tab;
+  const card = document.getElementById('card-' + id);
+  card.querySelectorAll('.preset-tab').forEach((t, i) => t.classList.toggle('active', (i===0?'bw':'color')===tab));
+  document.getElementById('pgrid-bw-' + id).style.display = tab==='bw' ? '' : 'none';
+  document.getElementById('pgrid-color-' + id).style.display = tab==='color' ? '' : 'none';
+}
+
 /* ---- State updates ---- */
 function setPreset(id, key) {
-  const p = PRESETS[key], s = cards[id];
+  const p = ALL_PRESETS[key], s = cards[id];
   s.preset = key; s.bw = p.bw;
-  for (const k of ['grain','contrast','sepia','fade','brightness','saturation','temperature'])
-    s[k] = p[k];
+  for (const k of ['grain','contrast','sepia','fade','brightness','saturation','temperature']) s[k] = p[k];
   refreshControls(id);
   render(id);
 }
@@ -326,50 +449,117 @@ function setParam(id, param, val) {
 
 function refreshControls(id) {
   const s = cards[id], card = document.getElementById('card-' + id);
-  // Preset buttons
   card.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.preset === s.preset));
-  // Mode buttons
   const mBtns = card.querySelector('.mode-toggle').children;
   mBtns[0].classList.toggle('active', s.bw);
   mBtns[1].classList.toggle('active', !s.bw);
-  // Sliders
   for (const p of ['grain','contrast','sepia','fade','brightness','saturation','temperature']) {
     const range = card.querySelector(`input[oninput*="'${p}'"]`);
     if (range) { range.value = s[p]; document.getElementById(`${p}-val-${id}`).textContent = s[p]; }
   }
+  if (s.bw && s.presetTab !== 'bw') switchTab(id, 'bw');
+  if (!s.bw && s.presetTab !== 'color') switchTab(id, 'color');
 }
 
+/* ---- Compare (draggable) ---- */
 function toggleCompare(id) {
   const s = cards[id];
   s.comparing = !s.comparing;
   const orig = document.getElementById('orig-' + id);
   const line = document.getElementById('line-' + id);
+  const dot = document.getElementById('dot-' + id);
+  const handle = document.getElementById('chandle-' + id);
   const lb = document.getElementById('lb-' + id);
   const la = document.getElementById('la-' + id);
+  const btn = document.getElementById('compare-btn-' + id);
   if (s.comparing) {
+    s.compareX = 50;
     orig.src = s.url; orig.style.display = 'block'; line.style.display = 'block';
+    dot.style.display = 'block'; handle.style.display = 'block';
     lb.style.display = 'block'; la.style.display = 'block';
+    btn.classList.add('btn-active');
+    setupCompareEvents(id);
+    updateComparePosition(id, 50);
   } else {
     orig.style.display = 'none'; line.style.display = 'none';
+    dot.style.display = 'none'; handle.style.display = 'none';
     lb.style.display = 'none'; la.style.display = 'none';
+    btn.classList.remove('btn-active');
+    if (s._compareCleanup) { s._compareCleanup(); s._compareCleanup = null; }
   }
+}
+
+function setupCompareEvents(id) {
+  const handle = document.getElementById('chandle-' + id);
+  const area = document.getElementById('img-area-' + id);
+  let dragging = false;
+
+  function onDown(e) { e.preventDefault(); dragging = true; }
+  function onMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const rect = area.getBoundingClientRect();
+    const cx = (e.clientX || e.touches[0].clientX);
+    const pct = Math.max(0, Math.min(100, ((cx - rect.left) / rect.width) * 100));
+    updateComparePosition(id, pct);
+  }
+  function onUp() { dragging = false; }
+
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  cards[id]._compareCleanup = () => {
+    handle.removeEventListener('mousedown', onDown);
+    handle.removeEventListener('touchstart', onDown);
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchend', onUp);
+  };
+}
+
+function updateComparePosition(id, pct) {
+  cards[id].compareX = pct;
+  const orig = document.getElementById('orig-' + id);
+  const line = document.getElementById('line-' + id);
+  const dot = document.getElementById('dot-' + id);
+  const handle = document.getElementById('chandle-' + id);
+  orig.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+  line.style.left = pct + '%';
+  dot.style.left = pct + '%';
+  handle.style.left = pct + '%';
 }
 
 function removeCard(id) {
   document.getElementById('card-' + id).remove();
+  if (cards[id]._compareCleanup) cards[id]._compareCleanup();
   URL.revokeObjectURL(cards[id].url);
   delete cards[id];
+  updateDownloadAll();
 }
 
 function download(id) {
   const canvas = document.getElementById('canvas-' + id);
   const a = document.createElement('a');
-  a.download = `argentic-${Date.now()}.jpg`;
+  const name = cards[id].fileName.replace(/\.[^.]+$/, '');
+  a.download = `${name}-argentic.jpg`;
   a.href = canvas.toDataURL('image/jpeg', 0.92);
   a.click();
 }
 
-/* ---- Rendering / image processing ---- */
+function downloadAll() {
+  for (const id of Object.keys(cards)) download(+id);
+}
+
+function updateDownloadAll() {
+  const row = document.getElementById('download-all-row');
+  row.classList.toggle('visible', Object.keys(cards).length > 1);
+}
+
+/* ---- Rendering ---- */
 let renderQueue = {};
 function render(id) {
   cancelAnimationFrame(renderQueue[id]);
@@ -402,240 +592,166 @@ function applyEffect(id) {
 
   for (let i = 0; i < len; i += 4) {
     let r = d[i], g = d[i+1], b = d[i+2];
-
-    // Brightness
     r += brightShift; g += brightShift; b += brightShift;
-
-    // Contrast
     r = factor * (r - 128) + 128;
     g = factor * (g - 128) + 128;
     b = factor * (b - 128) + 128;
-
-    // Temperature (warm = +red -blue, cool = -red +blue)
-    r += tempShift;
-    b -= tempShift;
-
-    // Saturation (before B&W so it affects colour presets)
+    r += tempShift; b -= tempShift;
     if (satAmt !== 1) {
       const gray = 0.299 * r + 0.587 * g + 0.114 * b;
       r = gray + (r - gray) * satAmt;
       g = gray + (g - gray) * satAmt;
       b = gray + (b - gray) * satAmt;
     }
-
-    // B&W
-    if (s.bw) {
-      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      r = g = b = lum;
-    }
-
-    // Sepia
+    if (s.bw) { const lum = 0.299 * r + 0.587 * g + 0.114 * b; r = g = b = lum; }
     if (sepiaAmt > 0) {
-      const sr = r * 0.393 + g * 0.769 + b * 0.189;
-      const sg = r * 0.349 + g * 0.686 + b * 0.168;
-      const sb = r * 0.272 + g * 0.534 + b * 0.131;
-      r = r + (sr - r) * sepiaAmt;
-      g = g + (sg - g) * sepiaAmt;
-      b = b + (sb - b) * sepiaAmt;
+      const sr = r*.393+g*.769+b*.189, sg = r*.349+g*.686+b*.168, sb = r*.272+g*.534+b*.131;
+      r += (sr-r)*sepiaAmt; g += (sg-g)*sepiaAmt; b += (sb-b)*sepiaAmt;
     }
-
-    // Fade (lift blacks)
     if (fadeAmt > 0) {
       const lift = fadeAmt * 40;
-      r = r + (lift - r) * fadeAmt * 0.3;
-      g = g + (lift - g) * fadeAmt * 0.3;
-      b = b + (lift - b) * fadeAmt * 0.3;
+      r += (lift-r)*fadeAmt*.3; g += (lift-g)*fadeAmt*.3; b += (lift-b)*fadeAmt*.3;
     }
-
-    // Grain
     if (grainAmt > 0) {
-      const noise = (Math.random() - 0.5) * grainAmt * 120;
+      const noise = (Math.random()-.5) * grainAmt * 120;
       r += noise; g += noise; b += noise;
     }
-
-    d[i]   = clamp(r);
-    d[i+1] = clamp(g);
-    d[i+2] = clamp(b);
+    d[i] = r<0?0:r>255?255:r;
+    d[i+1] = g<0?0:g>255?255:g;
+    d[i+2] = b<0?0:b>255?255:b;
   }
-
   ctx.putImageData(imageData, 0, 0);
 }
-
-function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
 
 /* ---- Crop system ---- */
 function toggleCrop(id) {
   const s = cards[id];
   if (s.cropping) { cancelCrop(id); return; }
-  s.cropping = true;
-  s.cropRatio = 0;
-  const overlay = document.getElementById('crop-overlay-' + id);
-  const section = document.getElementById('crop-section-' + id);
-  overlay.classList.add('active');
-  section.classList.add('active');
-  document.getElementById('crop-btn-' + id).textContent = '✂ Cropping…';
+  s.cropping = true; s.cropRatio = 0;
+  document.getElementById('crop-overlay-' + id).classList.add('active');
+  document.getElementById('crop-section-' + id).classList.add('active');
+  const btn = document.getElementById('crop-btn-' + id);
+  btn.textContent = 'Cropping…'; btn.classList.add('btn-active');
   initCropRect(id);
 }
 
 function cancelCrop(id) {
-  const s = cards[id];
-  s.cropping = false;
-  s.cropRect = null;
+  cards[id].cropping = false; cards[id].cropRect = null;
   document.getElementById('crop-overlay-' + id).classList.remove('active');
   document.getElementById('crop-section-' + id).classList.remove('active');
-  document.getElementById('crop-btn-' + id).textContent = '✂ Crop';
+  const btn = document.getElementById('crop-btn-' + id);
+  btn.textContent = 'Crop'; btn.classList.remove('btn-active');
 }
 
 function initCropRect(id) {
   const overlay = document.getElementById('crop-overlay-' + id);
-  const w = overlay.offsetWidth, h = overlay.offsetHeight;
-  const margin = 0.1;
-  cards[id].cropRect = { x: w * margin, y: h * margin, w: w * (1 - 2 * margin), h: h * (1 - 2 * margin) };
+  const w = overlay.offsetWidth, h = overlay.offsetHeight, m = 0.1;
+  cards[id].cropRect = { x: w*m, y: h*m, w: w*(1-2*m), h: h*(1-2*m) };
   updateCropUI(id);
   setupCropEvents(id);
 }
 
 function updateCropUI(id) {
-  const s = cards[id];
-  if (!s.cropRect) return;
+  const s = cards[id]; if (!s.cropRect) return;
   const cr = s.cropRect;
   const overlay = document.getElementById('crop-overlay-' + id);
   const ow = overlay.offsetWidth, oh = overlay.offsetHeight;
   const sel = document.getElementById('crop-sel-' + id);
-
-  sel.style.left = cr.x + 'px'; sel.style.top = cr.y + 'px';
-  sel.style.width = cr.w + 'px'; sel.style.height = cr.h + 'px';
-
-  document.getElementById('cdim-t-' + id).style.height = cr.y + 'px';
-  const bTop = cr.y + cr.h;
-  document.getElementById('cdim-b-' + id).style.height = (oh - bTop) + 'px';
-  const dl = document.getElementById('cdim-l-' + id);
-  dl.style.top = cr.y + 'px'; dl.style.height = cr.h + 'px'; dl.style.width = cr.x + 'px';
-  const dr = document.getElementById('cdim-r-' + id);
-  dr.style.top = cr.y + 'px'; dr.style.height = cr.h + 'px'; dr.style.width = (ow - cr.x - cr.w) + 'px';
+  sel.style.left = cr.x+'px'; sel.style.top = cr.y+'px';
+  sel.style.width = cr.w+'px'; sel.style.height = cr.h+'px';
+  document.getElementById('cdim-t-'+id).style.height = cr.y+'px';
+  document.getElementById('cdim-b-'+id).style.height = (oh-cr.y-cr.h)+'px';
+  const dl = document.getElementById('cdim-l-'+id);
+  dl.style.top=cr.y+'px'; dl.style.height=cr.h+'px'; dl.style.width=cr.x+'px';
+  const dr = document.getElementById('cdim-r-'+id);
+  dr.style.top=cr.y+'px'; dr.style.height=cr.h+'px'; dr.style.width=(ow-cr.x-cr.w)+'px';
 }
 
 function setupCropEvents(id) {
-  const overlay = document.getElementById('crop-overlay-' + id);
-  const sel = document.getElementById('crop-sel-' + id);
+  const overlay = document.getElementById('crop-overlay-'+id);
+  const sel = document.getElementById('crop-sel-'+id);
   let drag = null;
-
   function onDown(e) {
     e.preventDefault();
     const rect = overlay.getBoundingClientRect();
-    const mx = (e.clientX || e.touches[0].clientX) - rect.left;
-    const my = (e.clientY || e.touches[0].clientY) - rect.top;
+    const mx = (e.clientX||e.touches[0].clientX)-rect.left;
+    const my = (e.clientY||e.touches[0].clientY)-rect.top;
     const handle = e.target.dataset?.handle;
     const cr = cards[id].cropRect;
-    if (handle) {
-      drag = { type: 'handle', handle, startX: mx, startY: my, orig: { ...cr } };
-    } else if (e.target === sel || sel.contains(e.target)) {
-      drag = { type: 'move', startX: mx, startY: my, orig: { ...cr } };
-    } else {
-      drag = { type: 'new', startX: mx, startY: my };
-    }
+    if (handle) drag = {type:'handle',handle,startX:mx,startY:my,orig:{...cr}};
+    else if (e.target===sel||sel.contains(e.target)) drag = {type:'move',startX:mx,startY:my,orig:{...cr}};
+    else drag = {type:'new',startX:mx,startY:my};
   }
-
   function onMove(e) {
-    if (!drag) return;
-    e.preventDefault();
+    if (!drag) return; e.preventDefault();
     const rect = overlay.getBoundingClientRect();
-    const mx = Math.max(0, Math.min((e.clientX || e.touches[0].clientX) - rect.left, rect.width));
-    const my = Math.max(0, Math.min((e.clientY || e.touches[0].clientY) - rect.top, rect.height));
-    const cr = cards[id].cropRect;
-    const ow = rect.width, oh = rect.height;
-    const ratio = cards[id].cropRatio;
-
-    if (drag.type === 'move') {
-      let nx = drag.orig.x + (mx - drag.startX);
-      let ny = drag.orig.y + (my - drag.startY);
-      nx = Math.max(0, Math.min(nx, ow - cr.w));
-      ny = Math.max(0, Math.min(ny, oh - cr.h));
-      cr.x = nx; cr.y = ny;
-    } else if (drag.type === 'new') {
-      let x1 = Math.min(drag.startX, mx), y1 = Math.min(drag.startY, my);
-      let w = Math.abs(mx - drag.startX), h = Math.abs(my - drag.startY);
-      if (ratio > 0) { h = w / ratio; }
-      cr.x = x1; cr.y = y1; cr.w = Math.max(20, w); cr.h = Math.max(20, h);
-    } else if (drag.type === 'handle') {
-      const o = drag.orig;
-      let nx = cr.x, ny = cr.y, nw = cr.w, nh = cr.h;
-      const dx = mx - drag.startX, dy = my - drag.startY;
-      const h = drag.handle;
-      if (h.includes('l')) { nx = Math.min(o.x + dx, o.x + o.w - 20); nw = o.w - (nx - o.x); }
-      if (h.includes('r')) { nw = Math.max(20, o.w + dx); }
-      if (h.includes('t')) { ny = Math.min(o.y + dy, o.y + o.h - 20); nh = o.h - (ny - o.y); }
-      if (h.includes('b')) { nh = Math.max(20, o.h + dy); }
-      if (ratio > 0) {
-        if (h === 't' || h === 'b') { nw = nh * ratio; }
-        else { nh = nw / ratio; }
-      }
-      cr.x = Math.max(0, nx); cr.y = Math.max(0, ny);
-      cr.w = Math.min(nw, ow - cr.x); cr.h = Math.min(nh, oh - cr.y);
+    const mx = Math.max(0,Math.min((e.clientX||e.touches[0].clientX)-rect.left,rect.width));
+    const my = Math.max(0,Math.min((e.clientY||e.touches[0].clientY)-rect.top,rect.height));
+    const cr = cards[id].cropRect, ow = rect.width, oh = rect.height, ratio = cards[id].cropRatio;
+    if (drag.type==='move') {
+      let nx=drag.orig.x+(mx-drag.startX), ny=drag.orig.y+(my-drag.startY);
+      cr.x=Math.max(0,Math.min(nx,ow-cr.w)); cr.y=Math.max(0,Math.min(ny,oh-cr.h));
+    } else if (drag.type==='new') {
+      let w=Math.abs(mx-drag.startX), h=Math.abs(my-drag.startY);
+      if (ratio>0) h=w/ratio;
+      cr.x=Math.min(drag.startX,mx); cr.y=Math.min(drag.startY,my);
+      cr.w=Math.max(20,w); cr.h=Math.max(20,h);
+    } else {
+      const o=drag.orig; let nx=cr.x,ny=cr.y,nw=cr.w,nh=cr.h;
+      const dx=mx-drag.startX, dy=my-drag.startY, h=drag.handle;
+      if (h.includes('l')){nx=Math.min(o.x+dx,o.x+o.w-20);nw=o.w-(nx-o.x)}
+      if (h.includes('r')) nw=Math.max(20,o.w+dx);
+      if (h.includes('t')){ny=Math.min(o.y+dy,o.y+o.h-20);nh=o.h-(ny-o.y)}
+      if (h.includes('b')) nh=Math.max(20,o.h+dy);
+      if (ratio>0){if(h==='t'||h==='b')nw=nh*ratio;else nh=nw/ratio}
+      cr.x=Math.max(0,nx);cr.y=Math.max(0,ny);cr.w=Math.min(nw,ow-cr.x);cr.h=Math.min(nh,oh-cr.y);
     }
     updateCropUI(id);
   }
-
-  function onUp() { drag = null; }
-
-  overlay.onmousedown = onDown; overlay.ontouchstart = onDown;
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchend', onUp);
-  cards[id]._cropCleanup = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchend', onUp);
+  function onUp(){drag=null}
+  overlay.onmousedown=onDown; overlay.ontouchstart=onDown;
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchend',onUp);
+  cards[id]._cropCleanup=()=>{
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.removeEventListener('touchend',onUp);
   };
 }
 
 function setCropRatio(id, ratio) {
   cards[id].cropRatio = ratio;
   const btns = document.querySelectorAll(`#crop-section-${id} .ratio-btn`);
-  const labels = ['Free','1:1','4:5','4:3','16:9','3:2'];
-  const ratios = [0, 1, 4/5, 4/3, 16/9, 3/2];
-  btns.forEach((b, i) => b.classList.toggle('active', ratios[i] === ratio));
-  if (ratio > 0 && cards[id].cropRect) {
-    const cr = cards[id].cropRect;
-    cr.h = cr.w / ratio;
-    updateCropUI(id);
-  }
+  const ratios = [0,1,4/5,4/3,16/9,3/2];
+  btns.forEach((b,i) => b.classList.toggle('active', ratios[i]===ratio));
+  if (ratio>0 && cards[id].cropRect) { cards[id].cropRect.h = cards[id].cropRect.w/ratio; updateCropUI(id); }
 }
 
 function applyCrop(id) {
-  const s = cards[id];
-  if (!s.cropRect) return;
-  const overlay = document.getElementById('crop-overlay-' + id);
-  const canvas = document.getElementById('canvas-' + id);
-  const ow = overlay.offsetWidth, oh = overlay.offsetHeight;
-  const cr = s.cropRect;
-  const sourceImg = s.croppedImg || s.img;
-  const scaleX = sourceImg.naturalWidth / ow;
-  const scaleY = sourceImg.naturalHeight / oh;
-  const sx = cr.x * scaleX, sy = cr.y * scaleY;
-  const sw = cr.w * scaleX, sh = cr.h * scaleY;
-
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = Math.round(sw); tmpCanvas.height = Math.round(sh);
-  tmpCanvas.getContext('2d').drawImage(sourceImg, sx, sy, sw, sh, 0, 0, tmpCanvas.width, tmpCanvas.height);
-
+  const s = cards[id]; if (!s.cropRect) return;
+  const overlay = document.getElementById('crop-overlay-'+id);
+  const ow = overlay.offsetWidth, oh = overlay.offsetHeight, cr = s.cropRect;
+  const src = s.croppedImg||s.img;
+  const scX = src.naturalWidth/ow, scY = src.naturalHeight/oh;
+  const tmp = document.createElement('canvas');
+  tmp.width=Math.round(cr.w*scX); tmp.height=Math.round(cr.h*scY);
+  tmp.getContext('2d').drawImage(src, cr.x*scX, cr.y*scY, cr.w*scX, cr.h*scY, 0, 0, tmp.width, tmp.height);
   const newImg = new Image();
   newImg.onload = () => {
-    s.croppedImg = newImg;
-    cancelCrop(id);
-    if (s._cropCleanup) { s._cropCleanup(); s._cropCleanup = null; }
+    s.croppedImg = newImg; cancelCrop(id);
+    if (s._cropCleanup){s._cropCleanup();s._cropCleanup=null}
     render(id);
   };
-  newImg.src = tmpCanvas.toDataURL('image/png');
-  document.getElementById('reset-crop-btn-' + id).style.display = '';
+  newImg.src = tmp.toDataURL('image/png');
+  document.getElementById('reset-crop-btn-'+id).style.display='';
 }
 
 function resetCrop(id) {
-  cards[id].croppedImg = null;
-  cancelCrop(id);
-  document.getElementById('reset-crop-btn-' + id).style.display = 'none';
+  cards[id].croppedImg = null; cancelCrop(id);
+  document.getElementById('reset-crop-btn-'+id).style.display='none';
   render(id);
 }
 </script>
