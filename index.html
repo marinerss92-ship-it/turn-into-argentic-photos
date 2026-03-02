@@ -217,6 +217,30 @@ header p{color:var(--text2);font-size:.82rem;margin-top:.4rem;letter-spacing:.06
 .ratio-btn:hover{border-color:var(--border2);background:var(--surface3)}
 .ratio-btn.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
 .crop-actions{display:flex;gap:.4rem;margin-top:.5rem}
+
+/* AI Advisor */
+.ai-btn{
+  background:linear-gradient(135deg,#c8a46e 0%,#e8c88a 50%,#c8a46e 100%);background-size:200% 200%;
+  color:#111;border:none;font-weight:700;animation:aiShimmer 3s ease infinite;
+}
+.ai-btn:hover{background:linear-gradient(135deg,#a07d4f 0%,#c8a46e 50%,#a07d4f 100%);color:#111;border-color:transparent}
+@keyframes aiShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.ai-btn.loading{pointer-events:none;opacity:.7}
+
+.ai-panel{
+  display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  padding:.8rem;margin-top:.3rem;
+}
+.ai-panel.visible{display:block;animation:cardIn .3s ease forwards}
+.ai-panel .ai-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:600;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem}
+.ai-panel .ai-title::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+.ai-panel .ai-rec{font-size:.72rem;color:var(--text);line-height:1.6;margin-bottom:.5rem}
+.ai-panel .ai-rec strong{color:var(--accent)}
+.ai-panel .ai-apply{
+  width:100%;padding:.4rem;border:1px solid var(--accent);border-radius:6px;background:var(--accent-glow);
+  color:var(--accent);font-size:.72rem;font-weight:600;cursor:pointer;transition:all var(--transition);
+}
+.ai-panel .ai-apply:hover{background:var(--accent);color:#111}
 </style>
 </head>
 <body>
@@ -395,6 +419,16 @@ function buildCardHTML(id, s) {
           <button class="btn" onclick="cancelCrop(${id})">Cancel</button>
           <button class="btn btn-primary" onclick="applyCrop(${id})">Apply Crop</button>
         </div>
+      </div>
+
+      <div class="ctrl-divider"></div>
+      <div class="action-row" style="margin-top:0;padding-top:0">
+        <button class="btn ai-btn" onclick="aiAdvise(${id})" id="ai-btn-${id}">AI Advisor</button>
+      </div>
+      <div class="ai-panel" id="ai-panel-${id}">
+        <div class="ai-title">Photo Specialist</div>
+        <div class="ai-rec" id="ai-rec-${id}"></div>
+        <button class="ai-apply" onclick="aiApply(${id})">Apply recommendation</button>
       </div>
 
       <div class="ctrl-divider"></div>
@@ -753,6 +787,203 @@ function resetCrop(id) {
   cards[id].croppedImg = null; cancelCrop(id);
   document.getElementById('reset-crop-btn-'+id).style.display='none';
   render(id);
+}
+
+/* ---- AI Photo Advisor ---- */
+function aiAdvise(id) {
+  const s = cards[id];
+  if (!s || !s.img) return;
+  const btn = document.getElementById('ai-btn-' + id);
+  btn.textContent = 'Analyzing…'; btn.classList.add('loading');
+
+  setTimeout(() => {
+    const analysis = analyzeImage(s.croppedImg || s.img);
+    const rec = recommend(analysis);
+    s._aiRec = rec;
+
+    const panel = document.getElementById('ai-panel-' + id);
+    document.getElementById('ai-rec-' + id).innerHTML = rec.explanation;
+    panel.classList.add('visible');
+    btn.textContent = 'AI Advisor'; btn.classList.remove('loading');
+  }, 400);
+}
+
+function aiApply(id) {
+  const s = cards[id];
+  if (!s._aiRec) return;
+  const rec = s._aiRec;
+  s.preset = rec.preset; s.bw = rec.bw;
+  s.brightness = rec.brightness; s.contrast = rec.contrast;
+  s.saturation = rec.saturation; s.temperature = rec.temperature;
+  s.grain = rec.grain; s.sepia = rec.sepia; s.fade = rec.fade;
+  refreshControls(id);
+  render(id);
+}
+
+function analyzeImage(img) {
+  const c = document.createElement('canvas');
+  const size = 200;
+  const ratio = img.naturalWidth / img.naturalHeight;
+  c.width = size; c.height = Math.round(size / ratio);
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  const data = ctx.getImageData(0, 0, c.width, c.height).data;
+  const px = data.length / 4;
+
+  let sumR=0, sumG=0, sumB=0, sumLum=0, sumSat=0;
+  let darkPx=0, brightPx=0, skinPx=0;
+  let lumArr = [];
+  const hist = new Array(256).fill(0);
+
+  for (let i=0; i<data.length; i+=4) {
+    const r=data[i], g=data[i+1], b=data[i+2];
+    sumR+=r; sumG+=g; sumB+=b;
+    const lum = 0.299*r + 0.587*g + 0.114*b;
+    sumLum += lum;
+    lumArr.push(lum);
+    hist[Math.min(255, Math.round(lum))]++;
+
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    const sat = max===0 ? 0 : (max-min)/max;
+    sumSat += sat;
+
+    if (lum < 40) darkPx++;
+    if (lum > 215) brightPx++;
+
+    const h = rgbToHue(r,g,b);
+    if (sat > 0.15 && lum > 50 && lum < 220 && h >= 5 && h <= 50 && r > g && r > b) skinPx++;
+  }
+
+  const avgR=sumR/px, avgG=sumG/px, avgB=sumB/px;
+  const avgLum = sumLum/px;
+  const avgSat = sumSat/px;
+  const darkRatio = darkPx/px;
+  const brightRatio = brightPx/px;
+  const skinRatio = skinPx/px;
+  const warmth = (avgR - avgB) / 255;
+
+  let lumVariance = 0;
+  for (const l of lumArr) lumVariance += (l - avgLum) ** 2;
+  lumVariance = Math.sqrt(lumVariance / px);
+
+  let p5=0, p95=0, cum=0;
+  for (let i=0;i<256;i++) { cum+=hist[i]; if(!p5 && cum>=px*0.05) p5=i; if(!p95 && cum>=px*0.95) p95=i; }
+  const dynamicRange = p95 - p5;
+
+  return { avgLum, lumVariance, avgSat, warmth, darkRatio, brightRatio, skinRatio, dynamicRange, avgR, avgG, avgB };
+}
+
+function rgbToHue(r,g,b) {
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+  if (d===0) return 0;
+  let h;
+  if (max===r) h=((g-b)/d)%6;
+  else if (max===g) h=(b-r)/d+2;
+  else h=(r-g)/d+4;
+  h=Math.round(h*60); if(h<0) h+=360;
+  return h;
+}
+
+function recommend(a) {
+  let preset, presetName, reason, tips = [];
+  let bw, brightness, contrast, saturation, temperature, grain, sepia, fade;
+
+  const isPortrait = a.skinRatio > 0.08;
+  const isDark = a.avgLum < 85;
+  const isBright = a.avgLum > 170;
+  const isHighContrast = a.dynamicRange > 180;
+  const isLowContrast = a.dynamicRange < 100;
+  const isWarm = a.warmth > 0.08;
+  const isCool = a.warmth < -0.05;
+  const isColorful = a.avgSat > 0.35;
+  const isMuted = a.avgSat < 0.18;
+
+  if (isPortrait && !isDark) {
+    if (isMuted || isLowContrast) {
+      preset='portra160'; presetName='Portra 160';
+      reason = 'soft, muted portrait — the pastel tones of Portra 160 will enhance skin without over-saturating';
+    } else {
+      preset='portra400'; presetName='Portra 400';
+      reason = 'portrait with good tones — Portra 400 is the gold standard for flattering skin rendering';
+    }
+    bw = false;
+    tips.push('Portra\'s warm bias naturally flatters skin tones');
+    if (a.avgLum < 110) tips.push('Slightly lifted brightness to open up shadows on the face');
+  } else if (isDark && isHighContrast) {
+    preset='triX400'; presetName='Tri-X 400';
+    reason = 'dark, contrasty scene — Tri-X 400\'s punchy character thrives in dramatic lighting';
+    bw = true;
+    tips.push('Heavy grain adds grit that suits the mood');
+  } else if (isDark && !isHighContrast) {
+    preset='delta3200'; presetName='Delta 3200';
+    reason = 'low-light scene — Delta 3200 was designed for pushing in dim conditions, its heavy grain feels authentic';
+    bw = true;
+    tips.push('Boosted brightness to recover shadow detail');
+  } else if (isBright && isColorful) {
+    preset='velvia50'; presetName='Velvia 50';
+    reason = 'bright and colorful — Velvia 50 is the legendary slide film for saturated landscapes and vivid scenes';
+    bw = false;
+    tips.push('Velvia\'s ultra saturation makes colours pop like a transparency on a lightbox');
+  } else if (isBright && !isColorful) {
+    preset='fuji400h'; presetName='Fuji 400H';
+    reason = 'bright but soft colours — Fuji 400H\'s airy quality gives an ethereal, overexposed feel';
+    bw = false;
+    tips.push('The lifted shadows and gentle desaturation create a dreamy look');
+  } else if (isHighContrast && isColorful) {
+    preset='ektar100'; presetName='Ektar 100';
+    reason = 'high contrast with rich colours — Ektar 100 delivers punchy saturation with fine grain, like a vivid print';
+    bw = false;
+  } else if (isHighContrast && isMuted) {
+    preset='leicaM6'; presetName='Leica M6';
+    reason = 'high contrast with subdued colours — the Leica M6 look thrives on dramatic tonal range in B&W';
+    bw = true;
+    tips.push('The strong contrast is already there — letting B&W reveal the geometry of light');
+  } else if (isWarm) {
+    preset='gold200'; presetName='Kodak Gold';
+    reason = 'warm scene — Kodak Gold leans into golden tones, giving a nostalgic, sun-drenched feel';
+    bw = false;
+    tips.push('Gold\'s amber shift amplifies the existing warmth beautifully');
+  } else if (isCool) {
+    preset='cinestill'; presetName='CineStill 800T';
+    reason = 'cool tones detected — CineStill 800T\'s tungsten balance was made for blue-shifted, cinematic scenes';
+    bw = false;
+    tips.push('The halation and cool cast give a filmic, nocturnal atmosphere');
+  } else if (isLowContrast) {
+    preset='provia100'; presetName='Provia 100F';
+    reason = 'even lighting, gentle tones — Provia 100F adds subtle structure without overwhelming the scene';
+    bw = false;
+    tips.push('A slight contrast boost brings out dimension while staying natural');
+  } else {
+    preset='hp5'; presetName='Ilford HP5';
+    reason = 'balanced scene — HP5 is the versatile all-rounder that handles any subject with classic elegance';
+    bw = true;
+    tips.push('HP5\'s forgiving tonal range adapts beautifully to almost anything');
+  }
+
+  const p = ALL_PRESETS[preset];
+  brightness = p.brightness;
+  contrast = p.contrast;
+  saturation = p.saturation;
+  temperature = p.temperature;
+  grain = p.grain;
+  sepia = p.sepia;
+  fade = p.fade;
+
+  if (isDark) brightness = Math.min(62, brightness + 8);
+  if (isBright) brightness = Math.max(42, brightness - 6);
+  if (isLowContrast && !bw) contrast = Math.min(70, contrast + 8);
+  if (isMuted && !bw) saturation = Math.min(75, saturation + 10);
+
+  let explanation = `<strong>${presetName}</strong> — ${reason}.`;
+  if (tips.length) explanation += '<br>' + tips.map(t => '• ' + t).join('<br>');
+
+  const details = [];
+  if (brightness !== p.brightness) details.push(`Brightness ${brightness > p.brightness ? 'lifted' : 'lowered'} to ${brightness}`);
+  if (contrast !== p.contrast) details.push(`Contrast nudged to ${contrast}`);
+  if (saturation !== p.saturation) details.push(`Saturation adjusted to ${saturation}`);
+  if (details.length) explanation += '<br><br><em>Fine-tuned: ' + details.join(', ') + '</em>';
+
+  return { preset, bw, brightness, contrast, saturation, temperature, grain, sepia, fade, explanation };
 }
 </script>
 </body>
