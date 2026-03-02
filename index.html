@@ -93,6 +93,44 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
   display:flex;align-items:center;justify-content:center;transition:background .15s;
 }
 .remove-btn:hover{background:rgba(200,50,50,.8)}
+
+/* Crop overlay */
+.crop-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;cursor:crosshair;display:none;
+}
+.crop-overlay.active{display:block}
+.crop-dim{position:absolute;background:rgba(0,0,0,.55)}
+.crop-dim-top{top:0;left:0;width:100%}
+.crop-dim-bottom{bottom:0;left:0;width:100%}
+.crop-dim-left{left:0}
+.crop-dim-right{right:0}
+.crop-selection{
+  position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 1px rgba(0,0,0,.3);
+}
+.crop-handle{
+  position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;
+  border-radius:2px;z-index:2;
+}
+.crop-handle-tl{top:-6px;left:-6px;cursor:nw-resize}
+.crop-handle-tr{top:-6px;right:-6px;cursor:ne-resize}
+.crop-handle-bl{bottom:-6px;left:-6px;cursor:sw-resize}
+.crop-handle-br{bottom:-6px;right:-6px;cursor:se-resize}
+.crop-handle-t{top:-6px;left:50%;margin-left:-6px;cursor:n-resize}
+.crop-handle-b{bottom:-6px;left:50%;margin-left:-6px;cursor:s-resize}
+.crop-handle-l{top:50%;margin-top:-6px;left:-6px;cursor:w-resize}
+.crop-handle-r{top:50%;margin-top:-6px;right:-6px;cursor:e-resize}
+
+/* Crop controls */
+.crop-section{display:none}
+.crop-section.active{display:block}
+.ratio-grid{display:flex;flex-wrap:wrap;gap:.3rem}
+.ratio-btn{
+  padding:.3rem .55rem;border:1px solid var(--border);border-radius:5px;background:var(--surface2);
+  color:var(--text);font-size:.72rem;cursor:pointer;transition:all .15s;
+}
+.ratio-btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
+.ratio-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
+.crop-actions{display:flex;gap:.4rem;margin-top:.5rem}
 </style>
 </head>
 <body>
@@ -143,7 +181,7 @@ function handleFiles(files) {
 function addPhoto(file) {
   const id = cardId++;
   const url = URL.createObjectURL(file);
-  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, vignette:65, contrast:75, sepia:0, fade:5, comparing:false };
+  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, vignette:65, contrast:75, sepia:0, fade:5, comparing:false, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
   cards[id] = state;
 
   const card = document.createElement('div');
@@ -170,6 +208,22 @@ function buildCardHTML(id, s) {
       <div class="compare-line" id="line-${id}"></div>
       <span class="compare-label label-before" id="lb-${id}" style="display:none">Before</span>
       <span class="compare-label label-after" id="la-${id}" style="display:none">After</span>
+      <div class="crop-overlay" id="crop-overlay-${id}">
+        <div class="crop-dim crop-dim-top" id="cdim-t-${id}"></div>
+        <div class="crop-dim crop-dim-bottom" id="cdim-b-${id}"></div>
+        <div class="crop-dim crop-dim-left" id="cdim-l-${id}"></div>
+        <div class="crop-dim crop-dim-right" id="cdim-r-${id}"></div>
+        <div class="crop-selection" id="crop-sel-${id}">
+          <div class="crop-handle crop-handle-tl" data-handle="tl"></div>
+          <div class="crop-handle crop-handle-tr" data-handle="tr"></div>
+          <div class="crop-handle crop-handle-bl" data-handle="bl"></div>
+          <div class="crop-handle crop-handle-br" data-handle="br"></div>
+          <div class="crop-handle crop-handle-t" data-handle="t"></div>
+          <div class="crop-handle crop-handle-b" data-handle="b"></div>
+          <div class="crop-handle crop-handle-l" data-handle="l"></div>
+          <div class="crop-handle crop-handle-r" data-handle="r"></div>
+        </div>
+      </div>
     </div>
     <div class="controls">
       <h3>Preset</h3>
@@ -188,7 +242,25 @@ function buildCardHTML(id, s) {
       ${slider(id,'sepia','Sepia',s.sepia)}
       ${slider(id,'fade','Fade',s.fade)}
 
+      <div class="crop-section" id="crop-section-${id}">
+        <h3>Crop Ratio</h3>
+        <div class="ratio-grid">
+          <button class="ratio-btn active" onclick="setCropRatio(${id},0)">Free</button>
+          <button class="ratio-btn" onclick="setCropRatio(${id},1)">1:1</button>
+          <button class="ratio-btn" onclick="setCropRatio(${id},4/5)">4:5</button>
+          <button class="ratio-btn" onclick="setCropRatio(${id},4/3)">4:3</button>
+          <button class="ratio-btn" onclick="setCropRatio(${id},16/9)">16:9</button>
+          <button class="ratio-btn" onclick="setCropRatio(${id},3/2)">3:2</button>
+        </div>
+        <div class="crop-actions">
+          <button class="btn" onclick="cancelCrop(${id})">Cancel</button>
+          <button class="btn btn-primary" onclick="applyCrop(${id})">Apply Crop</button>
+        </div>
+      </div>
+
       <div class="action-row">
+        <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">✂ Crop</button>
+        <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">↩ Reset</button>
         <button class="btn" onclick="toggleCompare(${id})">Before / After</button>
         <button class="btn btn-primary" onclick="download(${id})">↓ Download</button>
       </div>
@@ -283,7 +355,7 @@ function applyEffect(id) {
   if (!s || !s.img) return;
   const canvas = document.getElementById('canvas-' + id);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const img = s.img;
+  const img = s.croppedImg || s.img;
 
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
@@ -358,6 +430,182 @@ function applyEffect(id) {
 }
 
 function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+/* ---- Crop system ---- */
+function toggleCrop(id) {
+  const s = cards[id];
+  if (s.cropping) { cancelCrop(id); return; }
+  s.cropping = true;
+  s.cropRatio = 0;
+  const overlay = document.getElementById('crop-overlay-' + id);
+  const section = document.getElementById('crop-section-' + id);
+  overlay.classList.add('active');
+  section.classList.add('active');
+  document.getElementById('crop-btn-' + id).textContent = '✂ Cropping…';
+  initCropRect(id);
+}
+
+function cancelCrop(id) {
+  const s = cards[id];
+  s.cropping = false;
+  s.cropRect = null;
+  document.getElementById('crop-overlay-' + id).classList.remove('active');
+  document.getElementById('crop-section-' + id).classList.remove('active');
+  document.getElementById('crop-btn-' + id).textContent = '✂ Crop';
+}
+
+function initCropRect(id) {
+  const overlay = document.getElementById('crop-overlay-' + id);
+  const w = overlay.offsetWidth, h = overlay.offsetHeight;
+  const margin = 0.1;
+  cards[id].cropRect = { x: w * margin, y: h * margin, w: w * (1 - 2 * margin), h: h * (1 - 2 * margin) };
+  updateCropUI(id);
+  setupCropEvents(id);
+}
+
+function updateCropUI(id) {
+  const s = cards[id];
+  if (!s.cropRect) return;
+  const cr = s.cropRect;
+  const overlay = document.getElementById('crop-overlay-' + id);
+  const ow = overlay.offsetWidth, oh = overlay.offsetHeight;
+  const sel = document.getElementById('crop-sel-' + id);
+
+  sel.style.left = cr.x + 'px'; sel.style.top = cr.y + 'px';
+  sel.style.width = cr.w + 'px'; sel.style.height = cr.h + 'px';
+
+  document.getElementById('cdim-t-' + id).style.height = cr.y + 'px';
+  const bTop = cr.y + cr.h;
+  document.getElementById('cdim-b-' + id).style.height = (oh - bTop) + 'px';
+  const dl = document.getElementById('cdim-l-' + id);
+  dl.style.top = cr.y + 'px'; dl.style.height = cr.h + 'px'; dl.style.width = cr.x + 'px';
+  const dr = document.getElementById('cdim-r-' + id);
+  dr.style.top = cr.y + 'px'; dr.style.height = cr.h + 'px'; dr.style.width = (ow - cr.x - cr.w) + 'px';
+}
+
+function setupCropEvents(id) {
+  const overlay = document.getElementById('crop-overlay-' + id);
+  const sel = document.getElementById('crop-sel-' + id);
+  let drag = null;
+
+  function onDown(e) {
+    e.preventDefault();
+    const rect = overlay.getBoundingClientRect();
+    const mx = (e.clientX || e.touches[0].clientX) - rect.left;
+    const my = (e.clientY || e.touches[0].clientY) - rect.top;
+    const handle = e.target.dataset?.handle;
+    const cr = cards[id].cropRect;
+    if (handle) {
+      drag = { type: 'handle', handle, startX: mx, startY: my, orig: { ...cr } };
+    } else if (e.target === sel || sel.contains(e.target)) {
+      drag = { type: 'move', startX: mx, startY: my, orig: { ...cr } };
+    } else {
+      drag = { type: 'new', startX: mx, startY: my };
+    }
+  }
+
+  function onMove(e) {
+    if (!drag) return;
+    e.preventDefault();
+    const rect = overlay.getBoundingClientRect();
+    const mx = Math.max(0, Math.min((e.clientX || e.touches[0].clientX) - rect.left, rect.width));
+    const my = Math.max(0, Math.min((e.clientY || e.touches[0].clientY) - rect.top, rect.height));
+    const cr = cards[id].cropRect;
+    const ow = rect.width, oh = rect.height;
+    const ratio = cards[id].cropRatio;
+
+    if (drag.type === 'move') {
+      let nx = drag.orig.x + (mx - drag.startX);
+      let ny = drag.orig.y + (my - drag.startY);
+      nx = Math.max(0, Math.min(nx, ow - cr.w));
+      ny = Math.max(0, Math.min(ny, oh - cr.h));
+      cr.x = nx; cr.y = ny;
+    } else if (drag.type === 'new') {
+      let x1 = Math.min(drag.startX, mx), y1 = Math.min(drag.startY, my);
+      let w = Math.abs(mx - drag.startX), h = Math.abs(my - drag.startY);
+      if (ratio > 0) { h = w / ratio; }
+      cr.x = x1; cr.y = y1; cr.w = Math.max(20, w); cr.h = Math.max(20, h);
+    } else if (drag.type === 'handle') {
+      const o = drag.orig;
+      let nx = cr.x, ny = cr.y, nw = cr.w, nh = cr.h;
+      const dx = mx - drag.startX, dy = my - drag.startY;
+      const h = drag.handle;
+      if (h.includes('l')) { nx = Math.min(o.x + dx, o.x + o.w - 20); nw = o.w - (nx - o.x); }
+      if (h.includes('r')) { nw = Math.max(20, o.w + dx); }
+      if (h.includes('t')) { ny = Math.min(o.y + dy, o.y + o.h - 20); nh = o.h - (ny - o.y); }
+      if (h.includes('b')) { nh = Math.max(20, o.h + dy); }
+      if (ratio > 0) {
+        if (h === 't' || h === 'b') { nw = nh * ratio; }
+        else { nh = nw / ratio; }
+      }
+      cr.x = Math.max(0, nx); cr.y = Math.max(0, ny);
+      cr.w = Math.min(nw, ow - cr.x); cr.h = Math.min(nh, oh - cr.y);
+    }
+    updateCropUI(id);
+  }
+
+  function onUp() { drag = null; }
+
+  overlay.onmousedown = onDown; overlay.ontouchstart = onDown;
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  cards[id]._cropCleanup = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchend', onUp);
+  };
+}
+
+function setCropRatio(id, ratio) {
+  cards[id].cropRatio = ratio;
+  const btns = document.querySelectorAll(`#crop-section-${id} .ratio-btn`);
+  const labels = ['Free','1:1','4:5','4:3','16:9','3:2'];
+  const ratios = [0, 1, 4/5, 4/3, 16/9, 3/2];
+  btns.forEach((b, i) => b.classList.toggle('active', ratios[i] === ratio));
+  if (ratio > 0 && cards[id].cropRect) {
+    const cr = cards[id].cropRect;
+    cr.h = cr.w / ratio;
+    updateCropUI(id);
+  }
+}
+
+function applyCrop(id) {
+  const s = cards[id];
+  if (!s.cropRect) return;
+  const overlay = document.getElementById('crop-overlay-' + id);
+  const canvas = document.getElementById('canvas-' + id);
+  const ow = overlay.offsetWidth, oh = overlay.offsetHeight;
+  const cr = s.cropRect;
+  const sourceImg = s.croppedImg || s.img;
+  const scaleX = sourceImg.naturalWidth / ow;
+  const scaleY = sourceImg.naturalHeight / oh;
+  const sx = cr.x * scaleX, sy = cr.y * scaleY;
+  const sw = cr.w * scaleX, sh = cr.h * scaleY;
+
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = Math.round(sw); tmpCanvas.height = Math.round(sh);
+  tmpCanvas.getContext('2d').drawImage(sourceImg, sx, sy, sw, sh, 0, 0, tmpCanvas.width, tmpCanvas.height);
+
+  const newImg = new Image();
+  newImg.onload = () => {
+    s.croppedImg = newImg;
+    cancelCrop(id);
+    if (s._cropCleanup) { s._cropCleanup(); s._cropCleanup = null; }
+    render(id);
+  };
+  newImg.src = tmpCanvas.toDataURL('image/png');
+  document.getElementById('reset-crop-btn-' + id).style.display = '';
+}
+
+function resetCrop(id) {
+  cards[id].croppedImg = null;
+  cancelCrop(id);
+  document.getElementById('reset-crop-btn-' + id).style.display = 'none';
+  render(id);
+}
 </script>
 </body>
 </html>
