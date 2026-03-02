@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argentic — Film Photo Lab</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#111;--surface:#1a1a1a;--surface2:#232323;--border:#333;
+  --text:#e8e8e8;--text2:#999;--accent:#c8a46e;--accent2:#a07d4f;
+  --radius:10px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent)}
+
+/* Header */
+header{text-align:center;padding:2rem 1rem 1rem;border-bottom:1px solid var(--border)}
+header h1{font-size:1.8rem;font-weight:300;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05em}
+
+/* Upload zone */
+#drop-zone{
+  max-width:700px;margin:2rem auto;border:2px dashed var(--border);border-radius:var(--radius);
+  padding:3rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;
+}
+#drop-zone:hover,#drop-zone.drag-over{border-color:var(--accent);background:rgba(200,164,110,.06)}
+#drop-zone p{color:var(--text2);font-size:.95rem}
+#drop-zone .big{font-size:2.5rem;margin-bottom:.5rem;display:block}
+#file-input{display:none}
+
+/* Gallery */
+#gallery{max-width:1400px;margin:0 auto;padding:1rem;display:flex;flex-direction:column;gap:2rem}
+
+/* Card */
+.photo-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  display:grid;grid-template-columns:1fr 320px;gap:0;
+}
+@media(max-width:900px){.photo-card{grid-template-columns:1fr}}
+
+/* Image area */
+.img-area{position:relative;background:#000;display:flex;align-items:center;justify-content:center;min-height:350px;overflow:hidden}
+.img-area canvas,.img-area img{max-width:100%;max-height:70vh;object-fit:contain;display:block}
+.img-area .original-overlay{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;clip-path:inset(0 50% 0 0);pointer-events:none;z-index:2}
+.img-area .compare-line{position:absolute;top:0;left:50%;width:2px;height:100%;background:var(--accent);z-index:3;pointer-events:none;display:none}
+.img-area .compare-label{position:absolute;top:8px;z-index:4;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.65)}
+.img-area .label-before{left:8px}
+.img-area .label-after{right:8px}
+
+/* Controls panel */
+.controls{padding:1.2rem;display:flex;flex-direction:column;gap:.9rem;overflow-y:auto;max-height:70vh}
+.controls h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:.2rem}
+
+/* Preset grid */
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.preset-btn{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.45rem .5rem;
+  color:var(--text);font-size:.78rem;cursor:pointer;transition:all .15s;text-align:left;
+}
+.preset-btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
+.preset-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
+.preset-btn .preset-sub{display:block;font-size:.65rem;color:var(--text2);margin-top:1px}
+
+/* Mode toggle */
+.mode-toggle{display:flex;gap:.4rem}
+.mode-btn{
+  flex:1;padding:.4rem;border:1px solid var(--border);border-radius:6px;background:var(--surface2);
+  color:var(--text);font-size:.78rem;cursor:pointer;text-align:center;transition:all .15s;
+}
+.mode-btn.active{border-color:var(--accent);background:rgba(200,164,110,.15);color:var(--accent)}
+
+/* Sliders */
+.slider-row{display:flex;align-items:center;gap:.5rem}
+.slider-row label{font-size:.78rem;color:var(--text2);min-width:62px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent);height:4px}
+.slider-row .val{font-size:.72rem;color:var(--text2);min-width:28px;text-align:right}
+
+/* Buttons */
+.action-row{display:flex;gap:.5rem;margin-top:auto;padding-top:.5rem}
+.btn{
+  flex:1;padding:.55rem .8rem;border:1px solid var(--border);border-radius:6px;background:var(--surface2);
+  color:var(--text);font-size:.8rem;cursor:pointer;transition:all .15s;text-align:center;
+}
+.btn:hover{border-color:var(--accent);background:rgba(200,164,110,.1)}
+.btn-primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
+.btn-primary:hover{background:var(--accent2)}
+
+/* Remove button */
+.remove-btn{
+  position:absolute;top:8px;right:8px;z-index:5;background:rgba(0,0,0,.6);border:none;
+  color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;transition:background .15s;
+}
+.remove-btn:hover{background:rgba(200,50,50,.8)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Argentic</h1>
+  <p>Transform your photos into timeless analog film looks</p>
+</header>
+
+<div id="drop-zone" onclick="document.getElementById('file-input').click()">
+  <span class="big">📷</span>
+  <p>Drag & drop photos here or <strong>click to browse</strong></p>
+  <p style="font-size:.75rem;margin-top:.4rem;color:#666">Accepts JPEG, PNG — multiple files supported</p>
+  <input type="file" id="file-input" accept="image/*" multiple>
+</div>
+
+<div id="gallery"></div>
+
+<script>
+const PRESETS = {
+  leicaM6:    { name:'Leica M6',       sub:'High contrast B&W',    bw:true,  grain:55, vignette:65, contrast:75, sepia:0,  fade:5  },
+  leicaM3:    { name:'Leica M3',       sub:'Soft tones B&W',       bw:true,  grain:30, vignette:35, contrast:50, sepia:0,  fade:10 },
+  triX400:    { name:'Tri-X 400',      sub:'Punchy, heavy grain',  bw:true,  grain:80, vignette:25, contrast:70, sepia:0,  fade:15 },
+  hp5:        { name:'Ilford HP5',     sub:'Classic tonal range',  bw:true,  grain:50, vignette:30, contrast:55, sepia:0,  fade:8  },
+  portra400:  { name:'Portra 400',     sub:'Warm colour, fine grain', bw:false, grain:20, vignette:25, contrast:45, sepia:15, fade:5  },
+  superia:    { name:'Fuji Superia',   sub:'Cool tones, visible grain', bw:false, grain:45, vignette:35, contrast:50, sepia:0,  fade:10 },
+};
+
+let cardId = 0;
+const cards = {};
+
+/* ---- Upload handling ---- */
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const gallery = document.getElementById('gallery');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(files) {
+  [...files].forEach(f => { if (f.type.startsWith('image/')) addPhoto(f); });
+  fileInput.value = '';
+}
+
+/* ---- Add a photo card ---- */
+function addPhoto(file) {
+  const id = cardId++;
+  const url = URL.createObjectURL(file);
+  const state = { id, url, file, preset:'leicaM6', bw:true, grain:55, vignette:65, contrast:75, sepia:0, fade:5, comparing:false };
+  cards[id] = state;
+
+  const card = document.createElement('div');
+  card.className = 'photo-card';
+  card.id = 'card-' + id;
+  card.innerHTML = buildCardHTML(id, state);
+  gallery.appendChild(card);
+
+  const img = new Image();
+  img.onload = () => { state.img = img; render(id); };
+  img.src = url;
+}
+
+function buildCardHTML(id, s) {
+  let presetBtns = '';
+  for (const [key, p] of Object.entries(PRESETS)) {
+    presetBtns += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
+  }
+  return `
+    <div class="img-area" id="img-area-${id}">
+      <button class="remove-btn" onclick="removeCard(${id})" title="Remove">×</button>
+      <canvas id="canvas-${id}"></canvas>
+      <img id="orig-${id}" class="original-overlay" style="display:none">
+      <div class="compare-line" id="line-${id}"></div>
+      <span class="compare-label label-before" id="lb-${id}" style="display:none">Before</span>
+      <span class="compare-label label-after" id="la-${id}" style="display:none">After</span>
+    </div>
+    <div class="controls">
+      <h3>Preset</h3>
+      <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
+
+      <h3>Mode</h3>
+      <div class="mode-toggle">
+        <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
+        <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
+      </div>
+
+      <h3>Adjustments</h3>
+      ${slider(id,'grain','Grain',s.grain)}
+      ${slider(id,'vignette','Vignette',s.vignette)}
+      ${slider(id,'contrast','Contrast',s.contrast)}
+      ${slider(id,'sepia','Sepia',s.sepia)}
+      ${slider(id,'fade','Fade',s.fade)}
+
+      <div class="action-row">
+        <button class="btn" onclick="toggleCompare(${id})">Before / After</button>
+        <button class="btn btn-primary" onclick="download(${id})">↓ Download</button>
+      </div>
+    </div>`;
+}
+
+function slider(id, param, label, val) {
+  return `<div class="slider-row">
+    <label>${label}</label>
+    <input type="range" min="0" max="100" value="${val}" oninput="setParam(${id},'${param}',+this.value)">
+    <span class="val" id="${param}-val-${id}">${val}</span>
+  </div>`;
+}
+
+/* ---- State updates ---- */
+function setPreset(id, key) {
+  const p = PRESETS[key], s = cards[id];
+  s.preset = key; s.bw = p.bw; s.grain = p.grain; s.vignette = p.vignette;
+  s.contrast = p.contrast; s.sepia = p.sepia; s.fade = p.fade;
+  refreshControls(id);
+  render(id);
+}
+
+function setMode(id, bw) {
+  cards[id].bw = bw;
+  const btns = document.querySelector(`#card-${id} .mode-toggle`).children;
+  btns[0].classList.toggle('active', bw);
+  btns[1].classList.toggle('active', !bw);
+  render(id);
+}
+
+function setParam(id, param, val) {
+  cards[id][param] = val;
+  document.getElementById(`${param}-val-${id}`).textContent = val;
+  render(id);
+}
+
+function refreshControls(id) {
+  const s = cards[id], card = document.getElementById('card-' + id);
+  // Preset buttons
+  card.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.preset === s.preset));
+  // Mode buttons
+  const mBtns = card.querySelector('.mode-toggle').children;
+  mBtns[0].classList.toggle('active', s.bw);
+  mBtns[1].classList.toggle('active', !s.bw);
+  // Sliders
+  for (const p of ['grain','vignette','contrast','sepia','fade']) {
+    const range = card.querySelector(`input[oninput*="'${p}'"]`);
+    if (range) { range.value = s[p]; document.getElementById(`${p}-val-${id}`).textContent = s[p]; }
+  }
+}
+
+function toggleCompare(id) {
+  const s = cards[id];
+  s.comparing = !s.comparing;
+  const orig = document.getElementById('orig-' + id);
+  const line = document.getElementById('line-' + id);
+  const lb = document.getElementById('lb-' + id);
+  const la = document.getElementById('la-' + id);
+  if (s.comparing) {
+    orig.src = s.url; orig.style.display = 'block'; line.style.display = 'block';
+    lb.style.display = 'block'; la.style.display = 'block';
+  } else {
+    orig.style.display = 'none'; line.style.display = 'none';
+    lb.style.display = 'none'; la.style.display = 'none';
+  }
+}
+
+function removeCard(id) {
+  document.getElementById('card-' + id).remove();
+  URL.revokeObjectURL(cards[id].url);
+  delete cards[id];
+}
+
+function download(id) {
+  const canvas = document.getElementById('canvas-' + id);
+  const a = document.createElement('a');
+  a.download = `argentic-${Date.now()}.jpg`;
+  a.href = canvas.toDataURL('image/jpeg', 0.92);
+  a.click();
+}
+
+/* ---- Rendering / image processing ---- */
+let renderQueue = {};
+function render(id) {
+  cancelAnimationFrame(renderQueue[id]);
+  renderQueue[id] = requestAnimationFrame(() => applyEffect(id));
+}
+
+function applyEffect(id) {
+  const s = cards[id];
+  if (!s || !s.img) return;
+  const canvas = document.getElementById('canvas-' + id);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const img = s.img;
+
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  ctx.drawImage(img, 0, 0);
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = imageData.data;
+  const len = d.length;
+
+  const contrastF = (s.contrast - 50) / 50;
+  const factor = (1 + contrastF) / (1.0001 - contrastF);
+  const sepiaAmt = s.sepia / 100;
+  const fadeAmt = s.fade / 100;
+  const grainAmt = s.grain / 100;
+
+  for (let i = 0; i < len; i += 4) {
+    let r = d[i], g = d[i+1], b = d[i+2];
+
+    // Contrast
+    r = clamp(factor * (r - 128) + 128);
+    g = clamp(factor * (g - 128) + 128);
+    b = clamp(factor * (b - 128) + 128);
+
+    // B&W
+    if (s.bw) {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = g = b = lum;
+    }
+
+    // Sepia
+    if (sepiaAmt > 0) {
+      const sr = r * 0.393 + g * 0.769 + b * 0.189;
+      const sg = r * 0.349 + g * 0.686 + b * 0.168;
+      const sb = r * 0.272 + g * 0.534 + b * 0.131;
+      r = r + (sr - r) * sepiaAmt;
+      g = g + (sg - g) * sepiaAmt;
+      b = b + (sb - b) * sepiaAmt;
+    }
+
+    // Fade (lift blacks)
+    if (fadeAmt > 0) {
+      const lift = fadeAmt * 40;
+      r = r + (lift - r) * fadeAmt * 0.3;
+      g = g + (lift - g) * fadeAmt * 0.3;
+      b = b + (lift - b) * fadeAmt * 0.3;
+    }
+
+    // Grain
+    if (grainAmt > 0) {
+      const noise = (Math.random() - 0.5) * grainAmt * 120;
+      r += noise; g += noise; b += noise;
+    }
+
+    d[i]   = clamp(r);
+    d[i+1] = clamp(g);
+    d[i+2] = clamp(b);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Vignette (drawn on top)
+  if (s.vignette > 0) {
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+    const maxR = Math.sqrt(cx * cx + cy * cy);
+    const innerR = maxR * (1 - s.vignette / 100 * 0.75);
+    const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, maxR);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, `rgba(0,0,0,${0.25 + s.vignette / 100 * 0.55})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+function clamp(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+</script>
+</body>
+</html>
