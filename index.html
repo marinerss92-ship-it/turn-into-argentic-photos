@@ -35,7 +35,7 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 /* Card */
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
-  display:grid;grid-template-columns:1fr 320px;gap:0;
+  display:grid;grid-template-columns:1fr 340px;gap:0;
 }
 @media(max-width:900px){.photo-card{grid-template-columns:1fr}}
 
@@ -53,7 +53,7 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 .controls h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:.2rem}
 
 /* Preset grid */
-.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;max-height:220px;overflow-y:auto;padding-right:4px}
 .preset-btn{
   background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.45rem .5rem;
   color:var(--text);font-size:.78rem;cursor:pointer;transition:all .15s;text-align:left;
@@ -151,18 +151,35 @@ header p{color:var(--text2);font-size:.85rem;margin-top:.3rem;letter-spacing:.05
 
 <script>
 const PRESETS = {
+  // B&W Film Stocks
   leicaM6:    { name:'Leica M6',        sub:'High contrast B&W',       bw:true,  grain:55, contrast:75, sepia:0,  fade:5,  brightness:50, saturation:50, temperature:50 },
   leicaM3:    { name:'Leica M3',        sub:'Soft tones B&W',          bw:true,  grain:30, contrast:50, sepia:0,  fade:10, brightness:52, saturation:50, temperature:50 },
   triX400:    { name:'Tri-X 400',       sub:'Punchy, heavy grain',     bw:true,  grain:80, contrast:70, sepia:0,  fade:15, brightness:48, saturation:50, temperature:50 },
   hp5:        { name:'Ilford HP5',      sub:'Classic tonal range',     bw:true,  grain:50, contrast:55, sepia:0,  fade:8,  brightness:50, saturation:50, temperature:50 },
   delta3200:  { name:'Delta 3200',      sub:'High ISO, extreme grain', bw:true,  grain:90, contrast:65, sepia:0,  fade:20, brightness:46, saturation:50, temperature:50 },
   tmax100:    { name:'T-Max 100',       sub:'Ultra fine grain B&W',    bw:true,  grain:12, contrast:60, sepia:0,  fade:3,  brightness:52, saturation:50, temperature:50 },
+  panF50:     { name:'Ilford Pan F',    sub:'Extremely fine, sharp',   bw:true,  grain:8,  contrast:58, sepia:0,  fade:2,  brightness:53, saturation:50, temperature:50 },
+  fp4:        { name:'Ilford FP4',      sub:'Medium speed, smooth',    bw:true,  grain:25, contrast:52, sepia:0,  fade:6,  brightness:51, saturation:50, temperature:50 },
+  apx100:     { name:'Agfa APX 100',    sub:'Crisp, fine detail',      bw:true,  grain:18, contrast:62, sepia:0,  fade:4,  brightness:50, saturation:50, temperature:50 },
+  rolleiR80:  { name:'Rollei Retro 80', sub:'Infrared-like tones',     bw:true,  grain:35, contrast:72, sepia:0,  fade:10, brightness:47, saturation:50, temperature:50 },
+  fomapan:    { name:'Fomapan 400',     sub:'East European classic',   bw:true,  grain:65, contrast:58, sepia:0,  fade:12, brightness:49, saturation:50, temperature:50 },
+  vintage:    { name:'Vintage Print',   sub:'Aged sepia photograph',   bw:true,  grain:45, contrast:48, sepia:60, fade:18, brightness:52, saturation:50, temperature:55 },
+  // Colour Film Stocks
   portra400:  { name:'Portra 400',      sub:'Warm skin tones',         bw:false, grain:20, contrast:45, sepia:15, fade:5,  brightness:52, saturation:55, temperature:58 },
+  portra160:  { name:'Portra 160',      sub:'Pastel, fine grain',      bw:false, grain:10, contrast:42, sepia:8,  fade:3,  brightness:54, saturation:48, temperature:55 },
   superia:    { name:'Fuji Superia',    sub:'Cool tones, visible grain', bw:false, grain:45, contrast:50, sepia:0, fade:10, brightness:50, saturation:58, temperature:42 },
   ektar100:   { name:'Ektar 100',       sub:'Vivid colours, fine grain', bw:false, grain:10, contrast:60, sepia:0, fade:0,  brightness:52, saturation:72, temperature:52 },
   gold200:    { name:'Kodak Gold',      sub:'Warm nostalgic tones',    bw:false, grain:35, contrast:48, sepia:10, fade:8,  brightness:54, saturation:60, temperature:62 },
+  ultramax:   { name:'Ultramax 400',    sub:'Everyday warm colours',   bw:false, grain:40, contrast:52, sepia:5,  fade:6,  brightness:52, saturation:62, temperature:58 },
   cinestill:  { name:'CineStill 800T',  sub:'Cinematic tungsten',      bw:false, grain:40, contrast:55, sepia:0,  fade:12, brightness:48, saturation:55, temperature:35 },
-  lomo:       { name:'Lomography',      sub:'High saturation, punchy',   bw:false, grain:50, contrast:70, sepia:0, fade:5,  brightness:50, saturation:80, temperature:55 },
+  cinestill50:{ name:'CineStill 50D',   sub:'Daylight cinema',         bw:false, grain:15, contrast:52, sepia:0,  fade:5,  brightness:52, saturation:60, temperature:52 },
+  pro400h:    { name:'Fuji Pro 400H',   sub:'Soft pastels, low contrast', bw:false, grain:18, contrast:38, sepia:0, fade:8, brightness:54, saturation:45, temperature:46 },
+  velvia50:   { name:'Velvia 50',       sub:'Ultra saturated slides',  bw:false, grain:8,  contrast:68, sepia:0,  fade:0,  brightness:50, saturation:85, temperature:50 },
+  provia100:  { name:'Provia 100F',     sub:'Natural, balanced slides', bw:false, grain:10, contrast:55, sepia:0, fade:2,  brightness:51, saturation:62, temperature:50 },
+  lomo:       { name:'Lomography',      sub:'High saturation, punchy', bw:false, grain:50, contrast:70, sepia:0,  fade:5,  brightness:50, saturation:80, temperature:55 },
+  xpro:       { name:'Cross Process',   sub:'Green/yellow shift',      bw:false, grain:35, contrast:62, sepia:0,  fade:8,  brightness:50, saturation:70, temperature:38 },
+  polaroid:   { name:'Polaroid',        sub:'Faded instant film',      bw:false, grain:25, contrast:42, sepia:12, fade:22, brightness:55, saturation:52, temperature:56 },
+  fuji400h:   { name:'Fuji 400H',       sub:'Airy, overexposed feel',  bw:false, grain:22, contrast:40, sepia:0,  fade:15, brightness:58, saturation:42, temperature:48 },
 };
 
 let cardId = 0;
