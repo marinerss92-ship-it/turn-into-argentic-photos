@@ -112,18 +112,8 @@ header p{color:var(--text2);font-size:.82rem;margin-top:.4rem;letter-spacing:.06
   margin-bottom:.15rem;font-weight:600;
 }
 
-/* Preset tabs */
-.preset-tabs{display:flex;gap:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
-.preset-tab{
-  flex:1;padding:.35rem;text-align:center;font-size:.72rem;font-weight:500;cursor:pointer;
-  background:var(--surface2);color:var(--text2);border:none;transition:all var(--transition);
-}
-.preset-tab:first-child{border-right:1px solid var(--border)}
-.preset-tab.active{background:var(--accent-glow);color:var(--accent)}
-.preset-tab:hover:not(.active){background:var(--surface3)}
-
 /* Preset grid */
-.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;max-height:180px;overflow-y:auto;padding-right:2px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;max-height:220px;overflow-y:auto;padding-right:2px}
 .preset-btn{
   background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;
   color:var(--text);font-size:.74rem;cursor:pointer;transition:all var(--transition);text-align:left;
@@ -323,7 +313,7 @@ function addPhoto(file) {
   const id = cardId++;
   const url = URL.createObjectURL(file);
   const def = ALL_PRESETS.leicaM6;
-  const state = { id, url, file, fileName: file.name, preset:'leicaM6', presetTab:'bw', bw:true,
+  const state = { id, url, file, fileName: file.name, preset:'leicaM6', bw:true,
     grain:def.grain, contrast:def.contrast, sepia:def.sepia, fade:def.fade,
     brightness:def.brightness, saturation:def.saturation, temperature:def.temperature,
     comparing:false, compareX:50, cropping:false, cropRatio:0, cropRect:null, croppedImg:null };
@@ -342,13 +332,9 @@ function addPhoto(file) {
 }
 
 function buildCardHTML(id, s) {
-  const presetSets = { bw: BW_PRESETS, color: COLOR_PRESETS };
-  function buildGrid(presets, tab) {
-    let html = '';
-    for (const [key, p] of Object.entries(presets)) {
-      html += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
-    }
-    return `<div class="preset-grid" id="pgrid-${tab}-${id}" style="${s.presetTab===tab?'':'display:none'}">${html}</div>`;
+  let presetBtns = '';
+  for (const [key, p] of Object.entries(ALL_PRESETS)) {
+    presetBtns += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
   }
   return `
     <div class="filename-bar"><span class="dot"></span>${s.fileName}</div>
@@ -379,16 +365,11 @@ function buildCardHTML(id, s) {
       </div>
     </div>
     <div class="controls">
-      <h3>Film Stock</h3>
-      <div class="preset-tabs">
-        <button class="preset-tab${s.presetTab==='bw'?' active':''}" onclick="switchTab(${id},'bw')">B&W</button>
-        <button class="preset-tab${s.presetTab==='color'?' active':''}" onclick="switchTab(${id},'color')">Colour</button>
-      </div>
-      ${buildGrid(BW_PRESETS, 'bw')}
-      ${buildGrid(COLOR_PRESETS, 'color')}
+      <h3>Preset</h3>
+      <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
 
       <div class="ctrl-divider"></div>
-      <h3>Mode Override</h3>
+      <h3>Mode</h3>
       <div class="mode-toggle">
         <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
         <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
@@ -449,15 +430,6 @@ function slider(id, param, label, val) {
   </div>`;
 }
 
-/* ---- Preset tabs ---- */
-function switchTab(id, tab) {
-  cards[id].presetTab = tab;
-  const card = document.getElementById('card-' + id);
-  card.querySelectorAll('.preset-tab').forEach((t, i) => t.classList.toggle('active', (i===0?'bw':'color')===tab));
-  document.getElementById('pgrid-bw-' + id).style.display = tab==='bw' ? '' : 'none';
-  document.getElementById('pgrid-color-' + id).style.display = tab==='color' ? '' : 'none';
-}
-
 /* ---- State updates ---- */
 function setPreset(id, key) {
   const p = ALL_PRESETS[key], s = cards[id];
@@ -491,8 +463,6 @@ function refreshControls(id) {
     const range = card.querySelector(`input[oninput*="'${p}'"]`);
     if (range) { range.value = s[p]; document.getElementById(`${p}-val-${id}`).textContent = s[p]; }
   }
-  if (s.bw && s.presetTab !== 'bw') switchTab(id, 'bw');
-  if (!s.bw && s.presetTab !== 'color') switchTab(id, 'color');
 }
 
 /* ---- Compare (draggable) ---- */
