@@ -112,6 +112,21 @@ header p{color:var(--text2);font-size:.82rem;margin-top:.4rem;letter-spacing:.06
   margin-bottom:.15rem;font-weight:600;
 }
 
+/* Collapsible sections */
+.ctrl-details{border:1px solid var(--border2);border-radius:var(--radius-sm);overflow:hidden}
+.ctrl-details[open]{background:var(--surface)}
+.ctrl-details summary{
+  display:flex;align-items:center;justify-content:space-between;padding:.5rem .7rem;
+  cursor:pointer;list-style:none;user-select:none;font-size:.65rem;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:600;
+  background:var(--surface3);transition:background var(--transition);
+}
+.ctrl-details summary::-webkit-details-marker{display:none}
+.ctrl-details summary::after{content:'▸';font-size:.7rem;transition:transform .2s ease;color:var(--text3)}
+.ctrl-details[open] summary::after{transform:rotate(90deg)}
+.ctrl-details summary:hover{background:rgba(200,164,110,.08)}
+.ctrl-details .ctrl-details-body{padding:.5rem .7rem}
+
 /* Preset grid */
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;max-height:220px;overflow-y:auto;padding-right:2px}
 .preset-btn{
@@ -365,25 +380,31 @@ function buildCardHTML(id, s) {
       </div>
     </div>
     <div class="controls">
-      <h3>Preset</h3>
-      <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
+      <details class="ctrl-details" open>
+        <summary>Preset</summary>
+        <div class="ctrl-details-body">
+          <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
+        </div>
+      </details>
 
-      <div class="ctrl-divider"></div>
       <h3>Mode</h3>
       <div class="mode-toggle">
         <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
         <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
       </div>
 
-      <div class="ctrl-divider"></div>
-      <h3>Adjustments</h3>
-      ${slider(id,'brightness','Brightness',s.brightness)}
-      ${slider(id,'contrast','Contrast',s.contrast)}
-      ${slider(id,'saturation','Saturation',s.saturation)}
-      ${slider(id,'temperature','Temp',s.temperature)}
-      ${slider(id,'grain','Grain',s.grain)}
-      ${slider(id,'sepia','Sepia',s.sepia)}
-      ${slider(id,'fade','Fade',s.fade)}
+      <details class="ctrl-details" open>
+        <summary>Adjustments</summary>
+        <div class="ctrl-details-body">
+          ${slider(id,'brightness','Brightness',s.brightness)}
+          ${slider(id,'contrast','Contrast',s.contrast)}
+          ${slider(id,'saturation','Saturation',s.saturation)}
+          ${slider(id,'temperature','Temp',s.temperature)}
+          ${slider(id,'grain','Grain',s.grain)}
+          ${slider(id,'sepia','Sepia',s.sepia)}
+          ${slider(id,'fade','Fade',s.fade)}
+        </div>
+      </details>
 
       <div class="crop-section" id="crop-section-${id}">
         <div class="ctrl-divider"></div>
