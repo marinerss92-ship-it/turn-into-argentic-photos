@@ -450,6 +450,14 @@ function buildCardHTML(id, s) {
     </div>
     <div class="controls">
       <div class="controls-col">
+        <div class="mode-section">
+          <span class="mode-label">Mode</span>
+          <div class="mode-toggle">
+            <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
+            <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
+          </div>
+        </div>
+
         <details class="ctrl-details" open>
           <summary>Preset</summary>
           <div class="ctrl-details-body">
@@ -459,14 +467,6 @@ function buildCardHTML(id, s) {
       </div>
 
       <div class="controls-col">
-        <div class="mode-section">
-          <span class="mode-label">Mode</span>
-          <div class="mode-toggle">
-            <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
-            <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
-          </div>
-        </div>
-
         <details class="ctrl-details" open>
           <summary>Adjustments</summary>
           <div class="ctrl-details-body">
