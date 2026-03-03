@@ -72,7 +72,7 @@ header p{
 /* ===== Card ===== */
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;display:grid;grid-template-columns:1fr 340px;
+  overflow:hidden;display:grid;grid-template-columns:1fr 560px;
   box-shadow:var(--shadow);
   opacity:0;transform:translateY(12px);animation:cardIn .45s ease forwards;
 }
@@ -124,10 +124,11 @@ header p{
 
 /* ===== Controls panel ===== */
 .controls{
-  padding:.8rem;display:flex;flex-direction:column;gap:.5rem;
+  padding:.8rem;display:grid;grid-template-columns:1fr 1fr;gap:.6rem;
   overflow-y:auto;max-height:78vh;border-left:1px solid var(--border);
   background:var(--surface2);
 }
+.controls-col{display:flex;flex-direction:column;gap:.5rem}
 
 /* ===== Collapsible sections ===== */
 .ctrl-details{
@@ -297,7 +298,7 @@ header p{
 .ai-panel .ai-apply:hover{background:var(--accent);color:#111}
 
 /* ===== Responsive ===== */
-@media(max-width:960px){
+@media(max-width:1200px){
   .photo-card{grid-template-columns:1fr}
   .controls{border-left:none;border-top:1px solid var(--border);max-height:none}
 }
@@ -307,6 +308,7 @@ header p{
   #drop-zone{margin:1.2rem .75rem;padding:2rem 1.2rem}
   #gallery{padding:1rem .75rem 3rem}
   .img-area{min-height:240px}
+  .controls{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -442,67 +444,70 @@ function buildCardHTML(id, s) {
       </div>
     </div>
     <div class="controls">
-      <details class="ctrl-details" open>
-        <summary>Preset</summary>
-        <div class="ctrl-details-body">
-          <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
-        </div>
-      </details>
-
-      <div class="mode-section">
-        <span class="mode-label">Mode</span>
-        <div class="mode-toggle">
-          <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
-          <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
-        </div>
-      </div>
-
-      <details class="ctrl-details" open>
-        <summary>Adjustments</summary>
-        <div class="ctrl-details-body">
-          ${slider(id,'brightness','Brightness',s.brightness)}
-          ${slider(id,'contrast','Contrast',s.contrast)}
-          ${slider(id,'saturation','Saturation',s.saturation)}
-          ${slider(id,'temperature','Temp',s.temperature)}
-          ${slider(id,'grain','Grain',s.grain)}
-          ${slider(id,'sepia','Sepia',s.sepia)}
-          ${slider(id,'fade','Fade',s.fade)}
-        </div>
-      </details>
-
-      <div class="crop-section" id="crop-section-${id}">
+      <div class="controls-col">
         <details class="ctrl-details" open>
-          <summary>Crop</summary>
+          <summary>Preset</summary>
           <div class="ctrl-details-body">
-            <div class="ratio-grid">
-              <button class="ratio-btn active" onclick="setCropRatio(${id},0)">Free</button>
-              <button class="ratio-btn" onclick="setCropRatio(${id},1)">1:1</button>
-              <button class="ratio-btn" onclick="setCropRatio(${id},4/5)">4:5</button>
-              <button class="ratio-btn" onclick="setCropRatio(${id},4/3)">4:3</button>
-              <button class="ratio-btn" onclick="setCropRatio(${id},16/9)">16:9</button>
-              <button class="ratio-btn" onclick="setCropRatio(${id},3/2)">3:2</button>
-            </div>
-            <div class="crop-actions">
-              <button class="btn" onclick="cancelCrop(${id})">Cancel</button>
-              <button class="btn btn-primary" onclick="applyCrop(${id})">Apply Crop</button>
-            </div>
+            <div class="preset-grid" id="presets-${id}">${presetBtns}</div>
+          </div>
+        </details>
+
+        <div class="mode-section">
+          <span class="mode-label">Mode</span>
+          <div class="mode-toggle">
+            <button class="mode-btn${s.bw?' active':''}" onclick="setMode(${id},true)">B&W</button>
+            <button class="mode-btn${!s.bw?' active':''}" onclick="setMode(${id},false)">Colour</button>
+          </div>
+        </div>
+
+        <details class="ctrl-details" open>
+          <summary>Adjustments</summary>
+          <div class="ctrl-details-body">
+            ${slider(id,'brightness','Brightness',s.brightness)}
+            ${slider(id,'contrast','Contrast',s.contrast)}
+            ${slider(id,'saturation','Saturation',s.saturation)}
+            ${slider(id,'temperature','Temp',s.temperature)}
+            ${slider(id,'grain','Grain',s.grain)}
+            ${slider(id,'sepia','Sepia',s.sepia)}
+            ${slider(id,'fade','Fade',s.fade)}
           </div>
         </details>
       </div>
 
-      <div class="action-row">
+      <div class="controls-col">
         <button class="btn ai-btn" onclick="aiAdvise(${id})" id="ai-btn-${id}">AI Advisor</button>
-      </div>
-      <div class="ai-panel" id="ai-panel-${id}">
-        <div class="ai-title">Photo Specialist</div>
-        <div class="ai-rec" id="ai-rec-${id}"></div>
-        <button class="ai-apply" onclick="aiApply(${id})">Apply recommendation</button>
-      </div>
+        <div class="ai-panel" id="ai-panel-${id}">
+          <div class="ai-title">Photo Specialist</div>
+          <div class="ai-rec" id="ai-rec-${id}"></div>
+          <button class="ai-apply" onclick="aiApply(${id})">Apply recommendation</button>
+        </div>
 
-      <div class="ctrl-divider"></div>
-      <div class="action-row">
+        <div class="ctrl-divider"></div>
+
         <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">Crop</button>
-        <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">Reset</button>
+        <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">Reset Crop</button>
+        <div class="crop-section" id="crop-section-${id}">
+          <details class="ctrl-details" open>
+            <summary>Crop Options</summary>
+            <div class="ctrl-details-body">
+              <div class="ratio-grid">
+                <button class="ratio-btn active" onclick="setCropRatio(${id},0)">Free</button>
+                <button class="ratio-btn" onclick="setCropRatio(${id},1)">1:1</button>
+                <button class="ratio-btn" onclick="setCropRatio(${id},4/5)">4:5</button>
+                <button class="ratio-btn" onclick="setCropRatio(${id},4/3)">4:3</button>
+                <button class="ratio-btn" onclick="setCropRatio(${id},16/9)">16:9</button>
+                <button class="ratio-btn" onclick="setCropRatio(${id},3/2)">3:2</button>
+              </div>
+              <div class="crop-actions">
+                <button class="btn" onclick="cancelCrop(${id})">Cancel</button>
+                <button class="btn btn-primary" onclick="applyCrop(${id})">Apply Crop</button>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="ctrl-divider"></div>
+
         <button class="btn" onclick="toggleCompare(${id})" id="compare-btn-${id}">Compare</button>
         <button class="btn btn-primary" onclick="download(${id})">Download</button>
       </div>
