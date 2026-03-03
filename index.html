@@ -408,6 +408,7 @@ function addPhoto(file) {
   card.id = 'card-' + id;
   card.innerHTML = buildCardHTML(id, state);
   gallery.appendChild(card);
+  setupPresetKeyboard(id);
 
   const img = new Image();
   img.onload = () => { state.img = img; render(id); };
@@ -531,12 +532,28 @@ function slider(id, param, label, val) {
 }
 
 /* ---- State updates ---- */
-function setPreset(id, key) {
+function setPreset(id, key, focusBtn) {
   const p = ALL_PRESETS[key], s = cards[id];
   s.preset = key; s.bw = p.bw;
   for (const k of ['grain','contrast','sepia','fade','brightness','saturation','temperature']) s[k] = p[k];
   refreshControls(id);
   render(id);
+  if (focusBtn) focusBtn.focus();
+}
+
+function setupPresetKeyboard(id) {
+  const grid = document.getElementById('presets-' + id);
+  grid.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const visible = [...grid.querySelectorAll('.preset-btn')].filter(b => b.style.display !== 'none');
+    const idx = visible.indexOf(document.activeElement);
+    if (idx < 0) return;
+    const next = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+    if (next < 0 || next >= visible.length) return;
+    const btn = visible[next];
+    setPreset(id, btn.dataset.preset, btn);
+  });
 }
 
 function setMode(id, bw) {
