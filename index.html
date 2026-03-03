@@ -191,11 +191,11 @@ header p{
 .mode-btn:hover:not(.active){background:var(--surface3);color:var(--text)}
 
 /* ===== Sliders ===== */
-.slider-row{display:flex;align-items:center;gap:.3rem;padding:.2rem 0}
+.slider-row{display:flex;align-items:center;gap:.3rem;padding:.2rem .4rem .2rem 0}
 .slider-row label{font-size:.62rem;color:var(--text2);min-width:52px;white-space:nowrap;font-weight:400}
 .slider-row input[type=range]{
   flex:1;-webkit-appearance:none;appearance:none;height:2px;border-radius:1px;
-  background:var(--border2);outline:none;cursor:pointer;margin:0;
+  background:var(--border2);outline:none;cursor:pointer;margin:0;min-width:0;
 }
 .slider-row input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:8px;height:8px;border-radius:50%;background:var(--accent);
