@@ -190,27 +190,25 @@ header p{
 .mode-btn.active{background:var(--accent);color:#111;font-weight:600}
 .mode-btn:hover:not(.active){background:var(--surface3);color:var(--text)}
 
-.adj-scroll{max-height:35vh;overflow-y:auto}
-
 /* ===== Sliders ===== */
-.slider-row{display:flex;align-items:center;gap:.4rem;padding:.15rem 0}
-.slider-row label{font-size:.7rem;color:var(--text2);min-width:64px;font-weight:400}
+.slider-row{display:flex;align-items:center;gap:.3rem;padding:.1rem 0}
+.slider-row label{font-size:.62rem;color:var(--text2);min-width:38px;font-weight:400}
 .slider-row input[type=range]{
   flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
   background:var(--border2);outline:none;cursor:pointer;
 }
 .slider-row input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);
+  -webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--accent);
   border:2px solid var(--surface);cursor:pointer;box-shadow:0 0 6px rgba(0,0,0,.4);
   transition:transform .15s ease;
 }
 .slider-row input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 .slider-row input[type=range]::-moz-range-thumb{
-  width:13px;height:13px;border-radius:50%;background:var(--accent);
+  width:10px;height:10px;border-radius:50%;background:var(--accent);
   border:2px solid var(--surface);cursor:pointer;
 }
 .slider-row .val{
-  font-size:.65rem;color:var(--text3);min-width:22px;text-align:right;
+  font-size:.58rem;color:var(--text3);min-width:18px;text-align:right;
   font-variant-numeric:tabular-nums;font-weight:500;
 }
 
@@ -471,7 +469,7 @@ function buildCardHTML(id, s) {
 
         <details class="ctrl-details" open>
           <summary>Adjustments</summary>
-          <div class="ctrl-details-body adj-scroll">
+          <div class="ctrl-details-body">
             ${slider(id,'brightness','Brightness',s.brightness)}
             ${slider(id,'contrast','Contrast',s.contrast)}
             ${slider(id,'saturation','Saturation',s.saturation)}
