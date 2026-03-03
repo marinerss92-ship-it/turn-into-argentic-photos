@@ -418,7 +418,8 @@ function addPhoto(file) {
 function buildCardHTML(id, s) {
   let presetBtns = '';
   for (const [key, p] of Object.entries(ALL_PRESETS)) {
-    presetBtns += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" onclick="setPreset(${id},'${key}')">${p.name}<span class="preset-sub">${p.sub}</span></button>`;
+    const hidden = p.bw !== s.bw ? ' style="display:none"' : '';
+    presetBtns += `<button class="preset-btn${s.preset===key?' active':''}" data-preset="${key}" data-bw="${p.bw}" onclick="setPreset(${id},'${key}')"${hidden}>${p.name}<span class="preset-sub">${p.sub}</span></button>`;
   }
   return `
     <div class="filename-bar"><span class="dot"></span>${s.fileName}</div>
@@ -543,7 +544,14 @@ function setMode(id, bw) {
   const btns = document.querySelector(`#card-${id} .mode-toggle`).children;
   btns[0].classList.toggle('active', bw);
   btns[1].classList.toggle('active', !bw);
+  filterPresets(id, bw);
   render(id);
+}
+
+function filterPresets(id, bw) {
+  document.querySelectorAll(`#presets-${id} .preset-btn`).forEach(b => {
+    b.style.display = (b.dataset.bw === String(bw)) ? '' : 'none';
+  });
 }
 
 function setParam(id, param, val) {
