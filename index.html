@@ -748,10 +748,23 @@ function cancelCrop(id) {
   btn.textContent = 'Crop'; btn.classList.remove('btn-active');
 }
 
-function initCropRect(id) {
+function getCanvasBounds(id) {
   const overlay = document.getElementById('crop-overlay-' + id);
-  const w = overlay.offsetWidth, h = overlay.offsetHeight, m = 0.1;
-  cards[id].cropRect = { x: w*m, y: h*m, w: w*(1-2*m), h: h*(1-2*m) };
+  const canvas = document.getElementById('canvas-' + id);
+  const oRect = overlay.getBoundingClientRect();
+  const cRect = canvas.getBoundingClientRect();
+  return {
+    x: cRect.left - oRect.left,
+    y: cRect.top - oRect.top,
+    w: cRect.width,
+    h: cRect.height
+  };
+}
+
+function initCropRect(id) {
+  const cb = getCanvasBounds(id);
+  const m = 0.1;
+  cards[id].cropRect = { x: cb.x + cb.w*m, y: cb.y + cb.h*m, w: cb.w*(1-2*m), h: cb.h*(1-2*m) };
   updateCropUI(id);
   setupCropEvents(id);
 }
@@ -837,13 +850,22 @@ function setCropRatio(id, ratio) {
 
 function applyCrop(id) {
   const s = cards[id]; if (!s.cropRect) return;
-  const overlay = document.getElementById('crop-overlay-'+id);
-  const ow = overlay.offsetWidth, oh = overlay.offsetHeight, cr = s.cropRect;
+  const cr = s.cropRect;
   const src = s.croppedImg||s.img;
-  const scX = src.naturalWidth/ow, scY = src.naturalHeight/oh;
+  const cb = getCanvasBounds(id);
+
+  const cx = Math.max(0, cr.x - cb.x);
+  const cy = Math.max(0, cr.y - cb.y);
+  const cx2 = Math.min(cb.w, cr.x + cr.w - cb.x);
+  const cy2 = Math.min(cb.h, cr.y + cr.h - cb.y);
+  if (cx2 <= cx || cy2 <= cy) return;
+
+  const scX = src.naturalWidth / cb.w;
+  const scY = src.naturalHeight / cb.h;
   const tmp = document.createElement('canvas');
-  tmp.width=Math.round(cr.w*scX); tmp.height=Math.round(cr.h*scY);
-  tmp.getContext('2d').drawImage(src, cr.x*scX, cr.y*scY, cr.w*scX, cr.h*scY, 0, 0, tmp.width, tmp.height);
+  tmp.width = Math.round((cx2-cx)*scX);
+  tmp.height = Math.round((cy2-cy)*scY);
+  tmp.getContext('2d').drawImage(src, cx*scX, cy*scY, (cx2-cx)*scX, (cy2-cy)*scY, 0, 0, tmp.width, tmp.height);
   const newImg = new Image();
   newImg.onload = () => {
     s.croppedImg = newImg; cancelCrop(id);
