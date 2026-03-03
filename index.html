@@ -58,7 +58,7 @@ header p{
 #drop-zone.success{border-color:#5a9;background:rgba(85,170,153,.05)}
 
 /* ===== Gallery ===== */
-#gallery{max-width:1400px;margin:0 auto;padding:1.5rem 1.5rem 4rem;display:flex;flex-direction:column;gap:2rem}
+#gallery{max-width:100%;margin:0 auto;padding:1.5rem 1.5rem 4rem;display:flex;flex-direction:column;gap:2rem}
 
 /* ===== Download All ===== */
 #download-all-row{max-width:1400px;margin:0 auto;padding:0 1.5rem;display:none}
@@ -72,7 +72,7 @@ header p{
 /* ===== Card ===== */
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;display:grid;grid-template-columns:1fr 680px;
+  overflow:hidden;display:grid;grid-template-columns:1fr 190px 210px 170px;
   box-shadow:var(--shadow);
   opacity:0;transform:translateY(12px);animation:cardIn .45s ease forwards;
 }
@@ -123,12 +123,12 @@ header p{
 .img-area .label-after{right:10px}
 
 /* ===== Controls panel ===== */
-.controls{
-  padding:.8rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;
-  overflow-y:auto;max-height:78vh;border-left:1px solid var(--border);
-  background:var(--surface2);
+.controls{display:contents}
+.controls-col{
+  display:flex;flex-direction:column;gap:.5rem;
+  padding:.6rem;overflow-y:auto;max-height:78vh;
+  background:var(--surface2);border-left:1px solid var(--border);
 }
-.controls-col{display:flex;flex-direction:column;gap:.5rem}
 
 /* ===== Collapsible sections ===== */
 .ctrl-details{
@@ -153,8 +153,8 @@ header p{
 
 /* ===== Preset grid ===== */
 .preset-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:.3rem;
-  max-height:200px;overflow-y:auto;padding-right:2px;
+  display:grid;grid-template-columns:1fr;gap:.3rem;
+  max-height:none;overflow-y:auto;padding-right:2px;
 }
 .preset-btn{
   background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);
@@ -298,9 +298,11 @@ header p{
 .ai-panel .ai-apply:hover{background:var(--accent);color:#111}
 
 /* ===== Responsive ===== */
-@media(max-width:1400px){
+@media(max-width:1100px){
   .photo-card{grid-template-columns:1fr}
-  .controls{border-left:none;border-top:1px solid var(--border);max-height:none}
+  .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;
+    border-top:1px solid var(--border);background:var(--surface2);padding:.6rem}
+  .controls-col{border-left:none;max-height:none;background:none;padding:0}
 }
 @media(max-width:700px){
   .controls{grid-template-columns:1fr}
