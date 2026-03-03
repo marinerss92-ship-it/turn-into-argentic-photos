@@ -72,7 +72,7 @@ header p{
 /* ===== Card ===== */
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;display:grid;grid-template-columns:1fr 190px 210px 170px;
+  overflow:hidden;display:grid;grid-template-columns:1fr 190px 210px;
   box-shadow:var(--shadow);
   opacity:0;transform:translateY(12px);animation:cardIn .45s ease forwards;
 }
@@ -298,14 +298,11 @@ header p{
 .ai-panel .ai-apply:hover{background:var(--accent);color:#111}
 
 /* ===== Responsive ===== */
-@media(max-width:1100px){
+@media(max-width:900px){
   .photo-card{grid-template-columns:1fr}
-  .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
     border-top:1px solid var(--border);background:var(--surface2);padding:.6rem}
   .controls-col{border-left:none;max-height:none;background:none;padding:0}
-}
-@media(max-width:700px){
-  .controls{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   header{padding:1.5rem 1rem 1.2rem}
@@ -313,6 +310,7 @@ header p{
   #drop-zone{margin:1.2rem .75rem;padding:2rem 1.2rem}
   #gallery{padding:1rem .75rem 3rem}
   .img-area{min-height:240px}
+  .controls{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -478,19 +476,18 @@ function buildCardHTML(id, s) {
             ${slider(id,'fade','Fade',s.fade)}
           </div>
         </details>
-      </div>
-
-      <div class="controls-col">
-        <button class="btn ai-btn" onclick="aiAdvise(${id})" id="ai-btn-${id}">AI Advisor</button>
-        <div class="ai-panel" id="ai-panel-${id}">
-          <div class="ai-title">Photo Specialist</div>
-          <div class="ai-rec" id="ai-rec-${id}"></div>
-          <button class="ai-apply" onclick="aiApply(${id})">Apply recommendation</button>
-        </div>
 
         <div class="ctrl-divider"></div>
 
-        <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">Crop</button>
+        <div class="action-row">
+          <button class="btn ai-btn" onclick="aiAdvise(${id})" id="ai-btn-${id}">AI Advisor</button>
+          <button class="btn" onclick="toggleCrop(${id})" id="crop-btn-${id}">Crop</button>
+        </div>
+        <div class="action-row">
+          <button class="btn" onclick="toggleCompare(${id})" id="compare-btn-${id}">Compare</button>
+          <button class="btn btn-primary" onclick="download(${id})">Download</button>
+        </div>
+
         <button class="btn" onclick="resetCrop(${id})" id="reset-crop-btn-${id}" style="display:none">Reset Crop</button>
         <div class="crop-section" id="crop-section-${id}">
           <details class="ctrl-details" open>
@@ -512,10 +509,11 @@ function buildCardHTML(id, s) {
           </details>
         </div>
 
-        <div class="ctrl-divider"></div>
-
-        <button class="btn" onclick="toggleCompare(${id})" id="compare-btn-${id}">Compare</button>
-        <button class="btn btn-primary" onclick="download(${id})">Download</button>
+        <div class="ai-panel" id="ai-panel-${id}">
+          <div class="ai-title">Photo Specialist</div>
+          <div class="ai-rec" id="ai-rec-${id}"></div>
+          <button class="ai-apply" onclick="aiApply(${id})">Apply recommendation</button>
+        </div>
       </div>
     </div>`;
 }
