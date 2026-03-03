@@ -73,6 +73,7 @@ header p{
 .photo-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   overflow:hidden;display:grid;grid-template-columns:1fr 190px 210px;
+  grid-template-rows:auto 1fr;height:78vh;
   box-shadow:var(--shadow);
   opacity:0;transform:translateY(12px);animation:cardIn .45s ease forwards;
 }
@@ -89,7 +90,7 @@ header p{
 /* ===== Image area ===== */
 .img-area{
   position:relative;background:#000;display:flex;align-items:center;justify-content:center;
-  min-height:340px;overflow:hidden;
+  min-height:0;overflow:hidden;
 }
 .img-area canvas{max-width:100%;max-height:70vh;object-fit:contain;display:block}
 .img-area .original-overlay{
@@ -126,11 +127,8 @@ header p{
 .controls{display:contents}
 .controls-col{
   display:flex;flex-direction:column;gap:.5rem;
-  padding:.6rem;overflow-y:auto;
+  padding:.6rem;overflow-y:auto;min-height:0;
   background:var(--surface2);border-left:1px solid var(--border);
-}
-.photo-card .img-area,.photo-card .controls-col{
-  min-height:340px;max-height:78vh;
 }
 
 /* ===== Collapsible sections ===== */
@@ -302,10 +300,11 @@ header p{
 
 /* ===== Responsive ===== */
 @media(max-width:900px){
-  .photo-card{grid-template-columns:1fr}
+  .photo-card{grid-template-columns:1fr;height:auto;grid-template-rows:auto}
+  .img-area{min-height:240px}
   .controls{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
     border-top:1px solid var(--border);background:var(--surface2);padding:.6rem}
-  .controls-col{border-left:none;max-height:none;background:none;padding:0}
+  .controls-col{border-left:none;min-height:auto;overflow-y:visible;background:none;padding:0}
 }
 @media(max-width:600px){
   header{padding:1.5rem 1rem 1.2rem}
