@@ -126,8 +126,11 @@ header p{
 .controls{display:contents}
 .controls-col{
   display:flex;flex-direction:column;gap:.5rem;
-  padding:.6rem;overflow-y:auto;max-height:78vh;
+  padding:.6rem;overflow-y:auto;
   background:var(--surface2);border-left:1px solid var(--border);
+}
+.photo-card .img-area,.photo-card .controls-col{
+  min-height:340px;max-height:78vh;
 }
 
 /* ===== Collapsible sections ===== */
@@ -154,7 +157,7 @@ header p{
 /* ===== Preset grid ===== */
 .preset-grid{
   display:grid;grid-template-columns:1fr;gap:.3rem;
-  max-height:none;overflow-y:auto;padding-right:2px;
+  overflow-y:auto;padding-right:2px;
 }
 .preset-btn{
   background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);
